@@ -1586,6 +1586,14 @@
     </div>
 
     <script>
+        // Очистка поля имени при загрузке
+        window.addEventListener('load', function() {
+            const playerNameInput = document.getElementById('playerNameInput');
+            if (playerNameInput) {
+                 playerNameInput.value = '';
+            }
+        });
+        
         // Конфигурация Firebase - ЗАМЕНИТЕ НА ВАШУ
         const firebaseConfig = {
             apiKey: "YOUR_API_KEY",
