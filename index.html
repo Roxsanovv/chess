@@ -11,7 +11,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Все стили остаются без изменений */
+        /* Все стили остаются без изменений, кроме удаления трансформаций для фигур */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -217,12 +217,10 @@
             background-size: contain;
             background-repeat: no-repeat;
             background-position: center;
-            transition: transform 0.3s ease;
+            /* Убрана трансформация для переворота */
         }
         
-        .board.flipped .piece {
-            transform: rotate(180deg);
-        }
+        /* Убраны стили для .board.flipped .piece */
         
         /* Темы доски */
         .board.theme-classic .square.white {
@@ -303,9 +301,7 @@
             left: 3px;
         }
         
-        .board.flipped .coordinates {
-            transform: rotate(180deg);
-        }
+        /* Убраны стили для .board.flipped .coordinates */
         
         .game-controls {
             display: grid;
@@ -1370,7 +1366,7 @@
                     
                     <div class="game-controls">
                         <button id="newGame">Новая игра</button>
-                        <button id="flipBoard">Перевернуть доску</button>
+                        <!-- Убрана кнопка переворота доски -->
                         <button id="screenshot">Скриншот</button>
                         <button id="showSettings">Настройки</button>
                     </div>
@@ -1676,7 +1672,6 @@
             const boardElement = document.getElementById('board');
             const statusElement = document.getElementById('status');
             const newGameButton = document.getElementById('newGame');
-            const flipBoardButton = document.getElementById('flipBoard');
             const screenshotButton = document.getElementById('screenshot');
             const showSettingsButton = document.getElementById('showSettings');
             const closeSettingsButton = document.getElementById('closeSettings');
@@ -1727,7 +1722,6 @@
                 black: { kingSide: true, queenSide: true }
             };
             let promotionPending = null;
-            let isBoardFlipped = false;
             
             // Онлайн состояние
             let currentGameId = null;
@@ -1787,217 +1781,6 @@
             let currentPiecesTheme = 'classic';
             let pieceImages = piecesThemes[currentPiecesTheme];
 
-            // ===== ФУНКЦИИ ДЛЯ ПЕРЕВОРОТА ДОСКИ =====
-            function flipBoard() {
-                isBoardFlipped = !isBoardFlipped;
-                if (isBoardFlipped) {
-                    boardElement.classList.add('flipped');
-                } else {
-                    boardElement.classList.remove('flipped');
-                }
-                // Не перерисовываем доску заново, просто применяем трансформацию
-                updateBoardRotation();
-            }
-
-            function updateBoardRotation() {
-                // Применяем трансформацию ко всем фигурам
-                const pieces = document.querySelectorAll('.piece');
-                pieces.forEach(piece => {
-                    if (isBoardFlipped) {
-                        piece.style.transform = 'rotate(180deg)';
-                    } else {
-                        piece.style.transform = 'rotate(0deg)';
-                    }
-                });
-                
-                // Применяем трансформацию к координатам
-                const coordinates = document.querySelectorAll('.coordinates');
-                coordinates.forEach(coord => {
-                    if (isBoardFlipped) {
-                        coord.style.transform = 'rotate(180deg)';
-                    } else {
-                        coord.style.transform = 'rotate(0deg)';
-                    }
-                });
-            }
-
-            // ===== ФУНКЦИИ АВТОРИЗАЦИИ =====
-            
-            // Показать модальное окно авторизации
-            function showAuthModal() {
-                authModal.style.display = 'flex';
-                switchToTab('login');
-                clearAuthMessages();
-                clearAuthForms();
-            }
-
-            // Скрыть модальное окно авторизации
-            function hideAuthModal() {
-                authModal.style.display = 'none';
-                clearAuthMessages();
-                clearAuthForms();
-            }
-
-            // Переключение между вкладками входа и регистрации
-            function switchToTab(tabName) {
-                authTabs.forEach(tab => {
-                    tab.classList.remove('active');
-                    if (tab.dataset.tab === tabName) {
-                        tab.classList.add('active');
-                    }
-                });
-
-                if (tabName === 'login') {
-                    loginForm.style.display = 'flex';
-                    registerForm.style.display = 'none';
-                    document.getElementById('auth-modal-title').textContent = 'Вход в систему';
-                } else {
-                    loginForm.style.display = 'none';
-                    registerForm.style.display = 'flex';
-                    document.getElementById('auth-modal-title').textContent = 'Регистрация';
-                }
-            }
-
-            // Очистка сообщений об ошибках/успехе
-            function clearAuthMessages() {
-                loginError.textContent = '';
-                registerError.textContent = '';
-                loginSuccess.textContent = '';
-                registerSuccess.textContent = '';
-            }
-
-            // Очистка полей форм
-            function clearAuthForms() {
-                loginEmail.value = '';
-                loginPassword.value = '';
-                registerUsername.value = '';
-                registerEmail.value = '';
-                registerPassword.value = '';
-                confirmPassword.value = '';
-            }
-
-            // Показать сообщение об ошибке
-            function showAuthError(element, message) {
-                element.textContent = message;
-                setTimeout(() => {
-                    element.textContent = '';
-                }, 5000);
-            }
-
-            // Показать сообщение об успехе
-            function showAuthSuccess(element, message) {
-                element.textContent = message;
-                setTimeout(() => {
-                    element.textContent = '';
-                }, 3000);
-            }
-
-            // Валидация email
-            function validateEmail(email) {
-                const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                return re.test(email);
-            }
-
-            // Регистрация нового пользователя
-            async function registerUser(email, password, username) {
-                try {
-                    // Создаем пользователя в Firebase Authentication
-                    const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-                    const user = userCredential.user;
-                    
-                    // Создаем профиль в базе данных
-                    await database.ref('users/' + user.uid).set({
-                        username: username,
-                        email: email,
-                        rating: 1200,
-                        stats: {
-                            wins: 0,
-                            losses: 0,
-                            draws: 0,
-                            totalGames: 0
-                        },
-                        createdAt: firebase.database.ServerValue.TIMESTAMP,
-                        lastLogin: firebase.database.ServerValue.TIMESTAMP
-                    });
-                    
-                    return user;
-                } catch (error) {
-                    throw error;
-                }
-            }
-
-            // Вход пользователя
-            async function loginUser(email, password) {
-                try {
-                    const userCredential = await auth.signInWithEmailAndPassword(email, password);
-                    const user = userCredential.user;
-                    
-                    // Обновляем время последнего входа
-                    await database.ref('users/' + user.uid).update({
-                        lastLogin: firebase.database.ServerValue.TIMESTAMP
-                    });
-                    
-                    return user;
-                } catch (error) {
-                    throw error;
-                }
-            }
-
-            // Выход пользователя
-            function logoutUser() {
-                auth.signOut().then(() => {
-                    updateUI();
-                }).catch((error) => {
-                    console.error('Ошибка выхода:', error);
-                });
-            }
-
-            // Загрузка данных пользователя
-            async function loadUserData(userId) {
-                try {
-                    const snapshot = await database.ref('users/' + userId).once('value');
-                    if (snapshot.exists()) {
-                        const userData = snapshot.val();
-                        playerData = {
-                            name: userData.username || userData.email.split('@')[0],
-                            rating: userData.rating || 1200,
-                            stats: userData.stats || {
-                                wins: 0,
-                                losses: 0,
-                                draws: 0,
-                                totalGames: 0
-                            }
-                        };
-                        updateUI();
-                        updateRatingDisplay();
-                        updatePlayerStats();
-                    }
-                } catch (error) {
-                    console.error('Ошибка загрузки данных пользователя:', error);
-                }
-            }
-
-            // Обновление интерфейса в зависимости от состояния авторизации
-            function updateUI() {
-                if (currentUser) {
-                    authSection.style.display = 'none';
-                    userInfo.style.display = 'flex';
-                    userGreeting.textContent = `Привет, ${playerData.name}`;
-                    userRating.textContent = `Рейтинг: ${playerData.rating}`;
-                } else {
-                    authSection.style.display = 'flex';
-                    userInfo.style.display = 'none';
-                    // Сбрасываем данные для гостя
-                    playerData = {
-                        name: "Гость",
-                        rating: 1200,
-                        stats: { wins: 0, losses: 0, draws: 0, totalGames: 0 }
-                    };
-                    updateRatingDisplay();
-                    updatePlayerStats();
-                }
-            }
-
             // ===== ФУНКЦИИ ИГРЫ =====
             
             // Инициализация игры
@@ -2039,11 +1822,6 @@
                 playerColor = null;
                 opponentId = null;
                 gameInfoOnline.style.display = 'none';
-                
-                // Сбрасываем переворот доски
-                isBoardFlipped = false;
-                boardElement.classList.remove('flipped');
-                updateBoardRotation();
             }
 
             function createEmptyBoard() {
@@ -2094,16 +1872,61 @@
                 boardElement.className = 'board';
                 boardElement.classList.add(`theme-${boardTheme}`);
                 
-                // Рендерим доску в обычном порядке (белые внизу)
-                for (let row = 0; row < 8; row++) {
-                    for (let col = 0; col < 8; col++) {
-                        const square = document.createElement('div');
-                        square.classList.add('square');
-                        square.classList.add((row + col) % 2 === 0 ? 'white' : 'black');
-                        square.dataset.row = row;
-                        square.dataset.col = col;
+                // Определяем порядок рендеринга в зависимости от цвета игрока
+                let renderOrder = [];
+                if (playerColor === 'black') {
+                    // Для черных рендерим доску с черными фигурами внизу
+                    for (let row = 7; row >= 0; row--) {
+                        for (let col = 7; col >= 0; col--) {
+                            renderOrder.push({row, col});
+                        }
+                    }
+                } else {
+                    // Для белых рендерим доску с белыми фигурами внизу (обычный порядок)
+                    for (let row = 0; row < 8; row++) {
+                        for (let col = 0; col < 8; col++) {
+                            renderOrder.push({row, col});
+                        }
+                    }
+                }
+                
+                // Рендерим доску в выбранном порядке
+                renderOrder.forEach(({row, col}) => {
+                    const square = document.createElement('div');
+                    square.classList.add('square');
+                    
+                    // Определяем цвет клетки с учетом ориентации
+                    let squareColor;
+                    if (playerColor === 'black') {
+                        // Для черных инвертируем цвета клеток
+                        squareColor = (row + col) % 2 === 0 ? 'black' : 'white';
+                    } else {
+                        // Для белых обычные цвета
+                        squareColor = (row + col) % 2 === 0 ? 'white' : 'black';
+                    }
+                    square.classList.add(squareColor);
+                    
+                    square.dataset.row = row;
+                    square.dataset.col = col;
+                    
+                    // Добавляем координаты с учетом ориентации
+                    if (playerColor === 'black') {
+                        // Для черных инвертируем координаты
+                        if (col === 7) {
+                            const rank = document.createElement('span');
+                            rank.classList.add('coordinates', 'coord-rank');
+                            rank.textContent = row + 1;
+                            square.appendChild(rank);
+                        }
                         
-                        // Добавляем координаты
+                        if (row === 0) {
+                            const file = document.createElement('span');
+                            file.classList.add('coordinates', 'coord-file');
+                            file.textContent = String.fromCharCode(104 - col); // a=97, h=104
+                            square.appendChild(file);
+                        }
+                    } else {
+                        // Для белых обычные координаты
                         if (col === 0) {
                             const rank = document.createElement('span');
                             rank.classList.add('coordinates', 'coord-rank');
@@ -2117,22 +1940,19 @@
                             file.textContent = String.fromCharCode(97 + col);
                             square.appendChild(file);
                         }
-                        
-                        const piece = board[row][col];
-                        if (piece) {
-                            const pieceElement = document.createElement('div');
-                            pieceElement.classList.add('piece');
-                            pieceElement.style.backgroundImage = `url('${pieceImages[piece.color][piece.type]}')`;
-                            square.appendChild(pieceElement);
-                        }
-                        
-                        square.addEventListener('click', () => handleSquareClick(row, col));
-                        boardElement.appendChild(square);
                     }
-                }
-                
-                // Применяем текущее состояние переворота
-                updateBoardRotation();
+                    
+                    const piece = board[row][col];
+                    if (piece) {
+                        const pieceElement = document.createElement('div');
+                        pieceElement.classList.add('piece');
+                        pieceElement.style.backgroundImage = `url('${pieceImages[piece.color][piece.type]}')`;
+                        square.appendChild(pieceElement);
+                    }
+                    
+                    square.addEventListener('click', () => handleSquareClick(row, col));
+                    boardElement.appendChild(square);
+                });
                 
                 // Показываем возможные ходы если есть выбранная фигура
                 highlightValidMoves();
@@ -2421,6 +2241,9 @@
                     gameCodeElement.textContent = gameId;
                     updateGameStatus();
                     
+                    // Перерисовываем доску с учетом цвета игрока
+                    renderBoard();
+                    
                     // Слушаем изменения в игре
                     gameRef.on('value', (snapshot) => {
                         const gameData = snapshot.val();
@@ -2482,6 +2305,9 @@
                         updateGameStatus();
                         startOpponentTimer();
                         opponentId = gameData.playerWhite;
+                        
+                        // Перерисовываем доску с учетом цвета игрока
+                        renderBoard();
                         
                         // Слушаем ходы
                         movesRef.on('child_added', (snapshot) => {
@@ -2599,9 +2425,6 @@
                 boardTheme = theme;
                 boardElement.className = 'board';
                 boardElement.classList.add(`theme-${theme}`);
-                if (isBoardFlipped) {
-                    boardElement.classList.add('flipped');
-                }
                 localStorage.setItem('chessBoardTheme', theme);
                 
                 themeOptions.forEach(option => {
@@ -2912,7 +2735,6 @@
                 initGame();
             });
             
-            flipBoardButton.addEventListener('click', flipBoard);
             screenshotButton.addEventListener('click', takeScreenshot);
             
             showSettingsButton.addEventListener('click', openSettingsModal);
@@ -2965,6 +2787,183 @@
                     confirmRegisterBtn.click();
                 }
             });
+
+            // ===== ФУНКЦИИ ДЛЯ АВТОРИЗАЦИИ =====
+            
+            // Показать модальное окно авторизации
+            function showAuthModal() {
+                authModal.style.display = 'flex';
+                switchToTab('login');
+                clearAuthMessages();
+                clearAuthForms();
+            }
+
+            // Скрыть модальное окно авторизации
+            function hideAuthModal() {
+                authModal.style.display = 'none';
+                clearAuthMessages();
+                clearAuthForms();
+            }
+
+            // Переключение между вкладками входа и регистрации
+            function switchToTab(tabName) {
+                authTabs.forEach(tab => {
+                    tab.classList.remove('active');
+                    if (tab.dataset.tab === tabName) {
+                        tab.classList.add('active');
+                    }
+                });
+
+                if (tabName === 'login') {
+                    loginForm.style.display = 'flex';
+                    registerForm.style.display = 'none';
+                    document.getElementById('auth-modal-title').textContent = 'Вход в систему';
+                } else {
+                    loginForm.style.display = 'none';
+                    registerForm.style.display = 'flex';
+                    document.getElementById('auth-modal-title').textContent = 'Регистрация';
+                }
+            }
+
+            // Очистка сообщений об ошибках/успехе
+            function clearAuthMessages() {
+                loginError.textContent = '';
+                registerError.textContent = '';
+                loginSuccess.textContent = '';
+                registerSuccess.textContent = '';
+            }
+
+            // Очистка полей форм
+            function clearAuthForms() {
+                loginEmail.value = '';
+                loginPassword.value = '';
+                registerUsername.value = '';
+                registerEmail.value = '';
+                registerPassword.value = '';
+                confirmPassword.value = '';
+            }
+
+            // Показать сообщение об ошибке
+            function showAuthError(element, message) {
+                element.textContent = message;
+                setTimeout(() => {
+                    element.textContent = '';
+                }, 5000);
+            }
+
+            // Показать сообщение об успехе
+            function showAuthSuccess(element, message) {
+                element.textContent = message;
+                setTimeout(() => {
+                    element.textContent = '';
+                }, 3000);
+            }
+
+            // Валидация email
+            function validateEmail(email) {
+                const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                return re.test(email);
+            }
+
+            // Регистрация нового пользователя
+            async function registerUser(email, password, username) {
+                try {
+                    // Создаем пользователя в Firebase Authentication
+                    const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                    const user = userCredential.user;
+                    
+                    // Создаем профиль в базе данных
+                    await database.ref('users/' + user.uid).set({
+                        username: username,
+                        email: email,
+                        rating: 1200,
+                        stats: {
+                            wins: 0,
+                            losses: 0,
+                            draws: 0,
+                            totalGames: 0
+                        },
+                        createdAt: firebase.database.ServerValue.TIMESTAMP,
+                        lastLogin: firebase.database.ServerValue.TIMESTAMP
+                    });
+                    
+                    return user;
+                } catch (error) {
+                    throw error;
+                }
+            }
+
+            // Вход пользователя
+            async function loginUser(email, password) {
+                try {
+                    const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                    const user = userCredential.user;
+                    
+                    // Обновляем время последнего входа
+                    await database.ref('users/' + user.uid).update({
+                        lastLogin: firebase.database.ServerValue.TIMESTAMP
+                    });
+                    
+                    return user;
+                } catch (error) {
+                    throw error;
+                }
+            }
+
+            // Выход пользователя
+            function logoutUser() {
+                auth.signOut().then(() => {
+                    updateUI();
+                }).catch((error) => {
+                    console.error('Ошибка выхода:', error);
+                });
+            }
+
+            // Загрузка данных пользователя
+            async function loadUserData(userId) {
+                try {
+                    const snapshot = await database.ref('users/' + userId).once('value');
+                    if (snapshot.exists()) {
+                        const userData = snapshot.val();
+                        playerData = {
+                            name: userData.username || userData.email.split('@')[0],
+                            rating: userData.rating || 1200,
+                            stats: userData.stats || {
+                                wins: 0,
+                                losses: 0,
+                                draws: 0,
+                                totalGames: 0
+                            }
+                        };
+                        updateUI();
+                        updateRatingDisplay();
+                        updatePlayerStats();
+                    }
+                } catch (error) {
+                    console.error('Ошибка загрузки данных пользователя:', error);
+                }
+            }
+
+            // Обновление интерфейса в зависимости от состояния авторизации
+            function updateUI() {
+                if (currentUser) {
+                    authSection.style.display = 'none';
+                    userInfo.style.display = 'flex';
+                    userGreeting.textContent = `Привет, ${playerData.name}`;
+                    userRating.textContent = `Рейтинг: ${playerData.rating}`;
+                } else {
+                    authSection.style.display = 'flex';
+                    userInfo.style.display = 'none';
+                    // Сбрасываем данные для гостя
+                    playerData = {
+                        name: "Гость",
+                        rating: 1200,
+                        stats: { wins: 0, losses: 0, draws: 0, totalGames: 0 }
+                    };
+                    updateRatingDisplay();
+                    updatePlayerStats();
+                }
+            }
 
             // ===== СЛУШАТЕЛЬ СОСТОЯНИЯ АВТОРИЗАЦИИ =====
             auth.onAuthStateChanged((user) => {
