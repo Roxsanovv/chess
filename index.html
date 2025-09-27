@@ -199,6 +199,11 @@
             overflow: hidden;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
             min-width: min(320px, 80vw);
+            transition: transform 0.3s ease;
+        }
+        
+        .board.flipped {
+            transform: rotate(180deg);
         }
         
         .square {
@@ -211,12 +216,21 @@
             user-select: none;
         }
         
+        .board.flipped .square {
+            transform: rotate(180deg);
+        }
+        
         .piece {
             width: 80%;
             height: 80%;
             background-size: contain;
             background-repeat: no-repeat;
             background-position: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .board.flipped .piece {
+            transform: rotate(180deg);
         }
         
         /* Темы доски */
@@ -296,6 +310,10 @@
         .coord-rank {
             top: 1px;
             left: 3px;
+        }
+        
+        .board.flipped .coordinates {
+            transform: rotate(180deg);
         }
         
         .game-controls {
@@ -1320,6 +1338,10 @@
 <body>
     <div class="container">
         <header>
+            <div class="logo">
+                <h1>Онлайн Шахматы</h1>
+                <p>Играйте с реальными соперниками</p>
+            </div>
             
             <!-- Новая секция авторизации -->
             <div id="auth-section" class="auth-section">
@@ -1329,7 +1351,7 @@
             <!-- Информация о пользователе -->
             <div id="user-info" class="user-info" style="display: none;">
                 <span id="user-greeting">Привет, </span>
-                <span id="user-rating">Рейтинг: 1000</span>
+                <span id="user-rating">Рейтинг: 1200</span>
                 <button id="logoutBtn">Выйти</button>
             </div>
         </header>
@@ -1357,6 +1379,7 @@
                     
                     <div class="game-controls">
                         <button id="newGame">Новая игра</button>
+                        <button id="flipBoard">Перевернуть доску</button>
                         <button id="screenshot">Скриншот</button>
                         <button id="showSettings">Настройки</button>
                     </div>
@@ -1367,7 +1390,7 @@
                         <h3>Рейтинг</h3>
                         <div class="rating-container">
                             <div>Ваш рейтинг</div>
-                            <div class="rating-value" id="player-rating">1000</div>
+                            <div class="rating-value" id="player-rating">1200</div>
                             <div class="rating-change" id="rating-change"></div>
                         </div>
                     </div>
@@ -1529,17 +1552,17 @@
                 <div class="pieces-theme-selector">
                     <div class="pieces-theme-option active" data-pieces-theme="classic">
                         <div class="pieces-preview">
-                            <div class="piece-preview-icon" style="background-image: url('img/king.png')"></div>
-                            <div class="piece-preview-icon" style="background-image: url('img/pawn.png')"></div>
-                            <div class="piece-preview-icon" style="background-image: url('img/queen.png')"></div>
+                            <div class="piece-preview-icon" style="background-image: url('https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wk.png')"></div>
+                            <div class="piece-preview-icon" style="background-image: url('https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wp.png')"></div>
+                            <div class="piece-preview-icon" style="background-image: url('https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wq.png')"></div>
                         </div>
                         <div>Классические</div>
                     </div>
                     <div class="pieces-theme-option" data-pieces-theme="modern">
                         <div class="pieces-preview">
-                            <div class="piece-preview-icon" style="background-image: url('img/wm5.svg')"></div>
-                            <div class="piece-preview-icon" style="background-image: url('img/wm3.svg')"></div>
-                            <div class="piece-preview-icon" style="background-image: url('img/wm2.svg')"></div>
+                            <div class="piece-preview-icon" style="background-image: url('https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bk.png')"></div>
+                            <div class="piece-preview-icon" style="background-image: url('https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bp.png')"></div>
+                            <div class="piece-preview-icon" style="background-image: url('https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bq.png')"></div>
                         </div>
                         <div>Современные</div>
                     </div>
@@ -1583,16 +1606,16 @@
     <div class="promotion-modal" id="promotion-modal">
         <div class="promotion-choices">
             <div class="promotion-piece" data-piece="queen">
-                <div class="promotion-piece-icon" style="background-image: url('img/queen.png')"></div>
+                <div class="promotion-piece-icon" style="background-image: url('https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wq.png')"></div>
             </div>
             <div class="promotion-piece" data-piece="rook">
-                <div class="promotion-piece-icon" style="background-image: url('img/rook.png')"></div>
+                <div class="promotion-piece-icon" style="background-image: url('https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wr.png')"></div>
             </div>
             <div class="promotion-piece" data-piece="bishop">
-                <div class="promotion-piece-icon" style="background-image: url('img/bishop.png')"></div>
+                <div class="promotion-piece-icon" style="background-image: url('https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wb.png')"></div>
             </div>
             <div class="promotion-piece" data-piece="knight">
-                <div class="promotion-piece-icon" style="background-image: url('img/knight.png')"></div>
+                <div class="promotion-piece-icon" style="background-image: url('https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wn.png')"></div>
             </div>
         </div>
     </div>
@@ -1662,6 +1685,7 @@
             const boardElement = document.getElementById('board');
             const statusElement = document.getElementById('status');
             const newGameButton = document.getElementById('newGame');
+            const flipBoardButton = document.getElementById('flipBoard');
             const screenshotButton = document.getElementById('screenshot');
             const showSettingsButton = document.getElementById('showSettings');
             const closeSettingsButton = document.getElementById('closeSettings');
@@ -1712,6 +1736,7 @@
                 black: { kingSide: true, queenSide: true }
             };
             let promotionPending = null;
+            let isBoardFlipped = false;
             
             // Онлайн состояние
             let currentGameId = null;
@@ -1733,20 +1758,20 @@
             const piecesThemes = {
                 classic: {
                     white: {
-                        king: 'img/king.png',
-                        queen: 'img/queen.png',
-                        rook: 'img/rook.png',
-                        bishop: 'img/bishop.png',
-                        knight: 'img/knight.png',
-                        pawn: 'img/pawn.png'
+                        king: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wk.png',
+                        queen: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wq.png',
+                        rook: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wr.png',
+                        bishop: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wb.png',
+                        knight: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wn.png',
+                        pawn: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wp.png'
                     },
                     black: {
-                        king: 'img/blackking.png',
-                        queen: 'img/blackqueen.png',
-                        rook: 'img/blackrook.png',
-                        bishop: 'img/blackbishop.png',
-                        knight: 'img/blackknight.png',
-                        pawn: 'img/blackpawn.png'
+                        king: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bk.png',
+                        queen: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bq.png',
+                        rook: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/br.png',
+                        bishop: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bb.png',
+                        knight: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bn.png',
+                        pawn: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bp.png'
                     }
                 },
                 modern: {
@@ -1770,6 +1795,33 @@
             };
             let currentPiecesTheme = 'classic';
             let pieceImages = piecesThemes[currentPiecesTheme];
+
+            // ===== ФУНКЦИИ ДЛЯ ПЕРЕВОРОТА ДОСКИ =====
+            function flipBoard() {
+                isBoardFlipped = !isBoardFlipped;
+                if (isBoardFlipped) {
+                    boardElement.classList.add('flipped');
+                } else {
+                    boardElement.classList.remove('flipped');
+                }
+                renderBoard();
+            }
+
+            function getDisplayRow(row) {
+                return isBoardFlipped ? 7 - row : row;
+            }
+
+            function getDisplayCol(col) {
+                return isBoardFlipped ? 7 - col : col;
+            }
+
+            function getActualRow(displayRow) {
+                return isBoardFlipped ? 7 - displayRow : displayRow;
+            }
+
+            function getActualCol(displayCol) {
+                return isBoardFlipped ? 7 - displayCol : displayCol;
+            }
 
             // ===== ФУНКЦИИ АВТОРИЗАЦИИ =====
             
@@ -1897,7 +1949,6 @@
             function logoutUser() {
                 auth.signOut().then(() => {
                     updateUI();
-                    // Убрали уведомление о выходе
                 }).catch((error) => {
                     console.error('Ошибка выхода:', error);
                 });
@@ -1990,6 +2041,10 @@
                 playerColor = null;
                 opponentId = null;
                 gameInfoOnline.style.display = 'none';
+                
+                // Сбрасываем переворот доски
+                isBoardFlipped = false;
+                boardElement.classList.remove('flipped');
             }
 
             function createEmptyBoard() {
@@ -2003,35 +2058,34 @@
             }
 
             function setupPieces() {
-                // Белые фигуры внизу (ряды 6 и 7)
+                // Классическая расстановка фигур
+                // Белые фигуры внизу (ряд 7 и 6)
+                board[7][0] = { type: 'rook', color: 'white' };
+                board[7][1] = { type: 'knight', color: 'white' };
+                board[7][2] = { type: 'bishop', color: 'white' };
+                board[7][3] = { type: 'queen', color: 'white' };
+                board[7][4] = { type: 'king', color: 'white' };
+                board[7][5] = { type: 'bishop', color: 'white' };
+                board[7][6] = { type: 'knight', color: 'white' };
+                board[7][7] = { type: 'rook', color: 'white' };
+                
                 for (let col = 0; col < 8; col++) {
                     board[6][col] = { type: 'pawn', color: 'white' };
                 }
                 
-                // Черные фигуры сверху (ряды 0 и 1)
+                // Черные фигуры сверху (ряд 0 и 1)
+                board[0][0] = { type: 'rook', color: 'black' };
+                board[0][1] = { type: 'knight', color: 'black' };
+                board[0][2] = { type: 'bishop', color: 'black' };
+                board[0][3] = { type: 'queen', color: 'black' };
+                board[0][4] = { type: 'king', color: 'black' };
+                board[0][5] = { type: 'bishop', color: 'black' };
+                board[0][6] = { type: 'knight', color: 'black' };
+                board[0][7] = { type: 'rook', color: 'black' };
+                
                 for (let col = 0; col < 8; col++) {
                     board[1][col] = { type: 'pawn', color: 'black' };
                 }
-                
-                // Остальные фигуры - белые внизу
-                board[7][0] = { type: 'rook', color: 'white' };
-                board[7][7] = { type: 'rook', color: 'white' };
-                board[7][1] = { type: 'knight', color: 'white' };
-                board[7][6] = { type: 'knight', color: 'white' };
-                board[7][2] = { type: 'bishop', color: 'white' };
-                board[7][5] = { type: 'bishop', color: 'white' };
-                board[7][3] = { type: 'queen', color: 'white' };
-                board[7][4] = { type: 'king', color: 'white' };
-                
-                // Черные фигуры сверху
-                board[0][0] = { type: 'rook', color: 'black' };
-                board[0][7] = { type: 'rook', color: 'black' };
-                board[0][1] = { type: 'knight', color: 'black' };
-                board[0][6] = { type: 'knight', color: 'black' };
-                board[0][2] = { type: 'bishop', color: 'black' };
-                board[0][5] = { type: 'bishop', color: 'black' };
-                board[0][3] = { type: 'queen', color: 'black' };
-                board[0][4] = { type: 'king', color: 'black' };
                 
                 kingPositions = { white: { row: 7, col: 4 }, black: { row: 0, col: 4 } };
             }
@@ -2040,32 +2094,37 @@
                 boardElement.innerHTML = '';
                 boardElement.className = 'board';
                 boardElement.classList.add(`theme-${boardTheme}`);
+                if (isBoardFlipped) {
+                    boardElement.classList.add('flipped');
+                }
                 
-                // Рендерим доску с белыми внизу (ряд 7 - нижний)
-                for (let row = 0; row < 8; row++) {
-                    for (let col = 0; col < 8; col++) {
+                for (let displayRow = 0; displayRow < 8; displayRow++) {
+                    for (let displayCol = 0; displayCol < 8; displayCol++) {
+                        const actualRow = getActualRow(displayRow);
+                        const actualCol = getActualCol(displayCol);
+                        
                         const square = document.createElement('div');
                         square.classList.add('square');
-                        square.classList.add((row + col) % 2 === 0 ? 'white' : 'black');
-                        square.dataset.row = row;
-                        square.dataset.col = col;
+                        square.classList.add((actualRow + actualCol) % 2 === 0 ? 'white' : 'black');
+                        square.dataset.row = actualRow;
+                        square.dataset.col = actualCol;
                         
                         // Добавляем координаты
-                        if (col === 0) {
+                        if (actualCol === 0) {
                             const rank = document.createElement('span');
                             rank.classList.add('coordinates', 'coord-rank');
-                            rank.textContent = 8 - row; // Обратный порядок для правильного отображения
+                            rank.textContent = 8 - actualRow;
                             square.appendChild(rank);
                         }
                         
-                        if (row === 7) {
+                        if (actualRow === 7) {
                             const file = document.createElement('span');
                             file.classList.add('coordinates', 'coord-file');
-                            file.textContent = String.fromCharCode(97 + col);
+                            file.textContent = String.fromCharCode(97 + actualCol);
                             square.appendChild(file);
                         }
                         
-                        const piece = board[row][col];
+                        const piece = board[actualRow][actualCol];
                         if (piece) {
                             const pieceElement = document.createElement('div');
                             pieceElement.classList.add('piece');
@@ -2073,7 +2132,7 @@
                             square.appendChild(pieceElement);
                         }
                         
-                        square.addEventListener('click', () => handleSquareClick(row, col));
+                        square.addEventListener('click', () => handleSquareClick(actualRow, actualCol));
                         boardElement.appendChild(square);
                     }
                 }
@@ -2098,6 +2157,8 @@
                         
                         // Подсвечиваем возможные ходы
                         moves.forEach(move => {
+                            const displayRow = getDisplayRow(move.row);
+                            const displayCol = getDisplayCol(move.col);
                             const square = document.querySelector(`.square[data-row="${move.row}"][data-col="${move.col}"]`);
                             if (square) {
                                 square.classList.add('valid-move');
@@ -2110,7 +2171,7 @@
             function getValidMoves(row, col, piece) {
                 const moves = [];
                 
-                // Упрощенная логика возможных ходов для демонстрации
+                // Базовая логика ходов (упрощенная)
                 switch (piece.type) {
                     case 'pawn':
                         if (piece.color === 'white') {
@@ -2241,7 +2302,7 @@
                 }
             }
 
-            function handleSquareClick(row, col) {
+            function handleSquareClick(actualRow, actualCol) {
                 if (gameOver || !currentUser) {
                     return;
                 }
@@ -2250,7 +2311,7 @@
                     return;
                 }
                 
-                const piece = board[row][col];
+                const piece = board[actualRow][actualCol];
                 
                 // Проверяем принадлежность фигуры текущему игроку
                 let pieceBelongsToPlayer = false;
@@ -2260,11 +2321,11 @@
                 
                 if (piece && pieceBelongsToPlayer) {
                     // Выбираем фигуру
-                    selectedPiece = { row, col };
+                    selectedPiece = { row: actualRow, col: actualCol };
                     highlightValidMoves();
                 } else if (selectedPiece) {
                     // Делаем ход
-                    makeMove(selectedPiece.row, selectedPiece.col, row, col);
+                    makeMove(selectedPiece.row, selectedPiece.col, actualRow, actualCol);
                     selectedPiece = null;
                     highlightValidMoves();
                 }
@@ -2365,6 +2426,11 @@
                     gameCodeElement.textContent = gameId;
                     updateGameStatus();
                     
+                    // Автоматически переворачиваем доску для черных
+                    if (playerColor === 'black') {
+                        flipBoard();
+                    }
+                    
                     // Слушаем изменения в игре
                     gameRef.on('value', (snapshot) => {
                         const gameData = snapshot.val();
@@ -2427,6 +2493,11 @@
                         startOpponentTimer();
                         opponentId = gameData.playerWhite;
                         
+                        // Автоматически переворачиваем доску для черных
+                        if (playerColor === 'black') {
+                            flipBoard();
+                        }
+                        
                         // Слушаем ходы
                         movesRef.on('child_added', (snapshot) => {
                             const move = snapshot.val();
@@ -2461,6 +2532,15 @@
             function makeMove(fromRow, fromCol, toRow, toCol, promotionPiece = 'queen') {
                 if (!currentGameId || currentPlayer !== playerColor) return;
                 
+                // Проверяем валидность хода
+                const piece = board[fromRow][fromCol];
+                if (!piece) return;
+                
+                const validMoves = getValidMoves(fromRow, fromCol, piece);
+                const isValidMove = validMoves.some(move => move.row === toRow && move.col === toCol);
+                
+                if (!isValidMove) return;
+                
                 // Сохраняем ход в Firebase
                 movesRef.push({
                     fromRow,
@@ -2473,20 +2553,17 @@
                 });
                 
                 // Локальное обновление доски
-                const piece = board[fromRow][fromCol];
-                if (piece) {
-                    board[toRow][toCol] = piece;
-                    board[fromRow][fromCol] = null;
-                    renderBoard();
-                    
-                    currentPlayer = playerColor === 'white' ? 'black' : 'white';
-                    updateGameStatus();
-                    startOpponentTimer();
-                    
-                    gameRef.update({
-                        currentPlayer: currentPlayer
-                    });
-                }
+                board[toRow][toCol] = piece;
+                board[fromRow][fromCol] = null;
+                renderBoard();
+                
+                currentPlayer = playerColor === 'white' ? 'black' : 'white';
+                updateGameStatus();
+                startOpponentTimer();
+                
+                gameRef.update({
+                    currentPlayer: currentPlayer
+                });
             }
 
             function updateGameStatus() {
@@ -2537,6 +2614,9 @@
                 boardTheme = theme;
                 boardElement.className = 'board';
                 boardElement.classList.add(`theme-${theme}`);
+                if (isBoardFlipped) {
+                    boardElement.classList.add('flipped');
+                }
                 localStorage.setItem('chessBoardTheme', theme);
                 
                 themeOptions.forEach(option => {
@@ -2847,6 +2927,7 @@
                 initGame();
             });
             
+            flipBoardButton.addEventListener('click', flipBoard);
             screenshotButton.addEventListener('click', takeScreenshot);
             
             showSettingsButton.addEventListener('click', openSettingsModal);
