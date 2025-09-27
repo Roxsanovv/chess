@@ -42,6 +42,18 @@
             border-bottom: 1px solid #2a2f36;
         }
         
+        .logo h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 5px;
+        }
+        
+        .logo p {
+            font-size: 14px;
+            color: #8b98a5;
+        }
+        
         .auth-section {
             display: flex;
             gap: 10px;
@@ -50,7 +62,7 @@
         .auth-section button {
             padding: 10px 20px;
             font-size: 14px;
-            background: #ff6b6b;
+            background: #3a7bd5;
             color: white;
             border: none;
             border-radius: 6px;
@@ -60,7 +72,7 @@
         }
         
         .auth-section button:hover {
-            background: #ff6b6b;
+            background: #2a6bc5;
         }
         
         .user-info {
@@ -296,7 +308,7 @@
         .game-controls button {
             padding: 12px;
             font-size: 14px;
-            background: #ff6b6b;
+            background: #3a7bd5;
             color: white;
             border: none;
             border-radius: 8px;
@@ -306,7 +318,7 @@
         }
         
         .game-controls button:hover {
-            background: #ff6b6b;
+            background: #2a6bc5;
         }
         
         .game-controls button:last-child {
@@ -414,7 +426,7 @@
         }
         
         .move-history::-webkit-scrollbar-thumb {
-            background: #ff6b6b;
+            background: #3a7bd5;
             border-radius: 2px;
         }
         
@@ -435,7 +447,7 @@
         
         .move-number {
             font-weight: 600;
-            color: #ff6b6b;
+            color: #3a7bd5;
             margin-right: 8px;
         }
         
@@ -476,7 +488,7 @@
         .card-controls button {
             padding: 6px 8px;
             font-size: 12px;
-            background: #ff6b6b;
+            background: #3a7bd5;
             color: white;
             border: none;
             border-radius: 4px;
@@ -485,7 +497,7 @@
         }
         
         .card-controls button:hover {
-            background: #ff6b6b;
+            background: #2a6bc5;
         }
         
         .card-controls button:last-child {
@@ -519,14 +531,14 @@
         
         .leaderboard-item.current-player {
             background: rgba(58, 123, 213, 0.2);
-            border-left: 3px solid #ff6b6b;
+            border-left: 3px solid #3a7bd5;
         }
         
         .leaderboard-rank {
             font-weight: 600;
             width: 20px;
             text-align: center;
-            color: #ff6b6b;
+            color: #3a7bd5;
             font-size: 14px;
         }
         
@@ -629,7 +641,7 @@
         .online-controls button {
             padding: 12px;
             font-size: 14px;
-            background: #ff6b6b;
+            background: #3a7bd5;
             color: white;
             border: none;
             border-radius: 8px;
@@ -639,7 +651,7 @@
         }
         
         .online-controls button:hover {
-            background: #ff6b6b;
+            background: #2a6bc5;
         }
         
         .join-game {
@@ -755,7 +767,7 @@
         }
 
         .auth-tab.active {
-            background: #ff6b6b;
+            background: #3a7bd5;
             color: white;
         }
 
@@ -777,13 +789,13 @@
 
         .auth-form input:focus {
             outline: none;
-            border-color: #ff6b6b;
+            border-color: #3a7bd5;
         }
 
         .auth-form button {
             padding: 12px;
             font-size: 16px;
-            background: #ff6b6b;
+            background: #3a7bd5;
             color: white;
             border: none;
             border-radius: 8px;
@@ -793,7 +805,7 @@
         }
 
         .auth-form button:hover {
-            background: #ff6b6b;
+            background: #2a6bc5;
         }
 
         .auth-error {
@@ -832,7 +844,7 @@
             background: #1a1f27;
             border-radius: 12px;
             overflow: hidden;
-            border: 2px solid #ff6b6b;
+            border: 2px solid #3a7bd5;
             max-width: 300px;
             width: 100%;
         }
@@ -850,7 +862,7 @@
         }
         
         .promotion-piece:hover {
-            background: #ff6b6b;
+            background: #3a7bd5;
         }
         
         .promotion-piece-icon {
@@ -969,7 +981,7 @@
         }
         
         .theme-option.active {
-            border-color: #ff6b6b;
+            border-color: #3a7bd5;
             background: rgba(58, 123, 213, 0.1);
         }
         
@@ -1025,7 +1037,7 @@
         }
         
         .pieces-theme-option.active {
-            border-color: #ff6b6b;
+            border-color: #3a7bd5;
             background: rgba(58, 123, 213, 0.1);
         }
         
@@ -1108,7 +1120,7 @@
         }
         
         input:checked + .slider {
-            background-color: #ff6b6b;
+            background-color: #3a7bd5;
         }
         
         input:checked + .slider:before {
@@ -1144,12 +1156,12 @@
         }
         
         .btn-primary {
-            background: #ff6b6b;
+            background: #3a7bd5;
             color: white;
         }
         
         .btn-primary:hover {
-            background: #ff6b6b;
+            background: #2a6bc5;
         }
         
         /* Адаптивность для планшетов и больших телефонов */
@@ -1272,7 +1284,7 @@
             }
             
             .game-controls button:active {
-                background: #ff6b6b;
+                background: #2a6bc5;
             }
         }
         
@@ -1308,6 +1320,10 @@
 <body>
     <div class="container">
         <header>
+            <div class="logo">
+                <h1>Онлайн Шахматы</h1>
+                <p>Играйте с реальными соперниками</p>
+            </div>
             
             <!-- Новая секция авторизации -->
             <div id="auth-section" class="auth-section">
@@ -1403,7 +1419,7 @@
                     <div class="online-controls">
                         <button id="createGame">Создать игру</button>
                         <div class="join-game">
-                            <input type="text" id="gameCodeInput" placeholder="Код игры" autocomplete="off">
+                            <input type="text" id="gameCodeInput" placeholder="Код игры">
                             <button id="joinGame">Присоединиться</button>
                         </div>
                     </div>
@@ -1428,7 +1444,7 @@
                     </div>
                     
                     <div class="player-input">
-                        <input type="text" id="playerNameInput" placeholder="Ваше имя" maxlength="15" autocomplete="off">
+                        <input type="text" id="playerNameInput" placeholder="Ваше имя" maxlength="15">
                         <button id="savePlayerName">OK</button>
                     </div>
                 </div>
@@ -1586,7 +1602,6 @@
     </div>
 
     <script>
-        
         // Конфигурация Firebase - ЗАМЕНИТЕ НА ВАШУ
         const firebaseConfig = {
             apiKey: "YOUR_API_KEY",
@@ -2560,6 +2575,16 @@
                         resolve(savedLeaderboard ? JSON.parse(savedLeaderboard) : []);
                         return;
                     }
+                    
+                    // Заглушка для демонстрации
+                    const demoLeaderboard = [
+                        { name: 'Алексей', rating: 1560, wins: 12, losses: 3, draws: 2 },
+                        { name: 'Мария', rating: 1480, wins: 10, losses: 5, draws: 1 },
+                        { name: 'Дмитрий', rating: 1420, wins: 8, losses: 4, draws: 3 },
+                        { name: 'Ирина', rating: 1380, wins: 7, losses: 6, draws: 2 },
+                        { name: 'Сергей', rating: 1350, wins: 6, losses: 5, draws: 4 }
+                    ];
+                    resolve(demoLeaderboard);
             }
 
             function updateLeaderboard() {
