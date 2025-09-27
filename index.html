@@ -1,0 +1,2611 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Онлайн шахматы с рейтинговой системой</title>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f1419;
+            color: #e1e7ed;
+            line-height: 1.6;
+            padding: 15px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #2a2f36;
+        }
+        
+        .logo h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 5px;
+        }
+        
+        .logo p {
+            font-size: 14px;
+            color: #8b98a5;
+        }
+        
+        .auth-section {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .auth-section button {
+            padding: 10px 20px;
+            font-size: 14px;
+            background: #3a7bd5;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-weight: 500;
+        }
+        
+        .auth-section button:hover {
+            background: #2a6bc5;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: #1a1f27;
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid #2a2f36;
+        }
+        
+        .user-info span {
+            font-weight: 500;
+        }
+        
+        .user-info button {
+            padding: 8px 15px;
+            font-size: 14px;
+            background: #d9534f;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .user-info button:hover {
+            background: #c9302c;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .game-section {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .game-board {
+            background: #1a1f27;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border: 1px solid #2a2f36;
+        }
+        
+        .game-status {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #2a2f36;
+        }
+        
+        .status {
+            font-size: 18px;
+            font-weight: 600;
+            color: #ffffff;
+            padding: 10px;
+            border-radius: 8px;
+            background: #2a2f36;
+            text-align: center;
+        }
+        
+        .status.player-turn {
+            background: #2e7d32;
+        }
+        
+        .status.opponent-turn {
+            background: #c62828;
+        }
+        
+        .status.waiting {
+            background: #ff9800;
+        }
+        
+        .timer {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        .timer div {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #2a2f36;
+            padding: 10px;
+            border-radius: 8px;
+            min-width: 90px;
+        }
+        
+        .timer span:first-child {
+            font-size: 12px;
+            color: #8b98a5;
+            margin-bottom: 5px;
+        }
+        
+        .timer span:last-child {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .board-container {
+            display: flex;
+            justify-content: center;
+            margin: 15px 0;
+            padding: 10px;
+            overflow-x: auto;
+        }
+        
+        .board {
+            display: grid;
+            grid-template-columns: repeat(8, min(10vw, 50px));
+            grid-template-rows: repeat(8, min(10vw, 50px));
+            border: 2px solid #2a2f36;
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            min-width: min(320px, 80vw);
+        }
+        
+        .square {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            position: relative;
+            user-select: none;
+        }
+        
+        .piece {
+            width: 80%;
+            height: 80%;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+        
+        /* Темы доски */
+        .board.theme-classic .square.white {
+            background-color: #bdbdbd;
+        }
+        
+        .board.theme-classic .square.black {
+            background-color: #757575;
+        }
+        
+        .board.theme-blue .square.white {
+            background-color: #ffffff;
+        }
+        
+        .board.theme-blue .square.black {
+            background-color: #42a5f5;
+        }
+        
+        .board.theme-green .square.white {
+            background-color: #ffffff;
+        }
+        
+        .board.theme-green .square.black {
+            background-color: #66bb6a;
+        }
+        
+        .board.theme-purple .square.white {
+            background-color: #ffffff;
+        }
+        
+        .board.theme-purple .square.black {
+            background-color: #ab47bc;
+        }
+        
+        .board.theme-dark .square.white {
+            background-color: #616161;
+        }
+        
+        .board.theme-dark .square.black {
+            background-color: #424242;
+        }
+        
+        .selected {
+            background-color: #81c784 !important;
+        }
+        
+        .valid-move::after {
+            content: "";
+            position: absolute;
+            width: 30%;
+            height: 30%;
+            border-radius: 50%;
+            background-color: rgba(76, 175, 80, 0.7);
+        }
+        
+        .check {
+            background-color: rgba(244, 67, 54, 0.7) !important;
+        }
+        
+        .last-move {
+            background-color: rgba(33, 150, 243, 0.5);
+        }
+        
+        .coordinates {
+            position: absolute;
+            font-size: min(2.5vw, 12px);
+            font-weight: 500;
+            color: #424242;
+        }
+        
+        .coord-file {
+            bottom: 1px;
+            right: 3px;
+        }
+        
+        .coord-rank {
+            top: 1px;
+            left: 3px;
+        }
+        
+        .game-controls {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .game-controls button {
+            padding: 12px;
+            font-size: 14px;
+            background: #3a7bd5;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-weight: 500;
+        }
+        
+        .game-controls button:hover {
+            background: #2a6bc5;
+        }
+        
+        .game-controls button:last-child {
+            background: #6c757d;
+        }
+        
+        .game-controls button:last-child:hover {
+            background: #5a6268;
+        }
+        
+        .game-info {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .info-card {
+            background: #1a1f27;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border: 1px solid #2a2f36;
+        }
+        
+        .info-card h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #ffffff;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #2a2f36;
+        }
+        
+        .rating-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .rating-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #4caf50;
+            margin: 8px 0;
+        }
+        
+        .rating-change {
+            font-size: 14px;
+            padding: 4px 10px;
+            border-radius: 4px;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+        
+        .rating-change.show {
+            opacity: 1;
+        }
+        
+        .rating-change.positive {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4caf50;
+        }
+        
+        .rating-change.negative {
+            background: rgba(244, 67, 54, 0.2);
+            color: #f44336;
+        }
+        
+        .captured-pieces {
+            min-height: 50px;
+            padding: 8px;
+            background: #2a2f36;
+            border-radius: 6px;
+            text-align: center;
+            margin-top: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .captured-piece {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            margin: 2px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+        
+        .move-history {
+            max-height: 200px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+        
+        .move-history::-webkit-scrollbar {
+            width: 4px;
+        }
+        
+        .move-history::-webkit-scrollbar-track {
+            background: #2a2f36;
+            border-radius: 2px;
+        }
+        
+        .move-history::-webkit-scrollbar-thumb {
+            background: #3a7bd5;
+            border-radius: 2px;
+        }
+        
+        .move-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        
+        .move-item {
+            display: flex;
+            background: #2a2f36;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 13px;
+            justify-content: space-between;
+        }
+        
+        .move-number {
+            font-weight: 600;
+            color: #3a7bd5;
+            margin-right: 8px;
+        }
+        
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .card {
+            background: #1a1f27;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border: 1px solid #2a2f36;
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #2a2f36;
+        }
+        
+        .card-header h2 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #ffffff;
+        }
+        
+        .card-controls {
+            display: flex;
+            gap: 6px;
+        }
+        
+        .card-controls button {
+            padding: 6px 8px;
+            font-size: 12px;
+            background: #3a7bd5;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .card-controls button:hover {
+            background: #2a6bc5;
+        }
+        
+        .card-controls button:last-child {
+            background: #6c757d;
+        }
+        
+        .card-controls button:last-child:hover {
+            background: #5a6268;
+        }
+        
+        .leaderboard-list {
+            max-height: 250px;
+            overflow-y: auto;
+            margin-bottom: 12px;
+        }
+        
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            margin-bottom: 6px;
+            background: #2a2f36;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+        
+        .leaderboard-item:hover {
+            background: #323840;
+        }
+        
+        .leaderboard-item.current-player {
+            background: rgba(58, 123, 213, 0.2);
+            border-left: 3px solid #3a7bd5;
+        }
+        
+        .leaderboard-rank {
+            font-weight: 600;
+            width: 20px;
+            text-align: center;
+            color: #3a7bd5;
+            font-size: 14px;
+        }
+        
+        .leaderboard-player {
+            flex-grow: 1;
+            margin: 0 8px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: 14px;
+        }
+        
+        .leaderboard-rating {
+            font-weight: 600;
+            width: 40px;
+            text-align: right;
+            color: #4caf50;
+            font-size: 14px;
+        }
+        
+        .leaderboard-stats {
+            font-size: 11px;
+            color: #8b98a5;
+            margin-top: 2px;
+        }
+        
+        .leaderboard-stats span {
+            margin-right: 6px;
+        }
+        
+        .player-input {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        
+        .player-input input {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #2a2f36;
+            border-radius: 6px;
+            background: #1a1f27;
+            color: #e1e7ed;
+            font-size: 14px;
+        }
+        
+        .player-input button {
+            padding: 10px 12px;
+            font-size: 14px;
+            background: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-weight: 500;
+            min-width: 60px;
+        }
+        
+        .player-input button:hover {
+            background: #3d8b40;
+        }
+        
+        .legend-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+            flex-shrink: 0;
+        }
+        
+        /* Секция онлайн-игры */
+        .online-section {
+            background: #1a1f27;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border: 1px solid #2a2f36;
+        }
+        
+        .online-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .online-controls button {
+            padding: 12px;
+            font-size: 14px;
+            background: #3a7bd5;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-weight: 500;
+        }
+        
+        .online-controls button:hover {
+            background: #2a6bc5;
+        }
+        
+        .join-game {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .join-game input {
+            flex-grow: 1;
+            padding: 12px;
+            border: 1px solid #2a2f36;
+            border-radius: 8px;
+            background: #1a1f27;
+            color: #e1e7ed;
+            font-size: 14px;
+        }
+        
+        .game-info-online {
+            margin-top: 15px;
+            padding: 15px;
+            background: #2a2f36;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .game-code {
+            font-size: 24px;
+            font-weight: 700;
+            color: #4caf50;
+            margin: 10px 0;
+        }
+        
+        /* Модальные окна для авторизации */
+        .auth-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 20, 25, 0.95);
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            padding: 20px;
+        }
+
+        .auth-content {
+            background: #1a1f27;
+            border-radius: 12px;
+            padding: 25px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 1px solid #2a2f36;
+            animation: modalFadeIn 0.3s ease-out;
+        }
+
+        .auth-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #2a2f36;
+        }
+
+        .auth-header h2 {
+            color: #ffffff;
+            font-size: 22px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .close-auth {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #8b98a5;
+            cursor: pointer;
+            transition: color 0.3s;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+        }
+
+        .close-auth:hover {
+            color: #ffffff;
+            background: #2a2f36;
+        }
+
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            background: #2a2f36;
+            border-radius: 8px;
+            padding: 4px;
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 10px;
+            background: none;
+            border: none;
+            color: #8b98a5;
+            cursor: pointer;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .auth-tab.active {
+            background: #3a7bd5;
+            color: white;
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .auth-form input {
+            padding: 12px;
+            border: 1px solid #2a2f36;
+            border-radius: 8px;
+            background: #1a1f27;
+            color: #e1e7ed;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .auth-form input:focus {
+            outline: none;
+            border-color: #3a7bd5;
+        }
+
+        .auth-form button {
+            padding: 12px;
+            font-size: 16px;
+            background: #3a7bd5;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-weight: 500;
+        }
+
+        .auth-form button:hover {
+            background: #2a6bc5;
+        }
+
+        .auth-error {
+            color: #f44336;
+            font-size: 14px;
+            text-align: center;
+            margin-top: 10px;
+            min-height: 20px;
+        }
+
+        .auth-success {
+            color: #4caf50;
+            font-size: 14px;
+            text-align: center;
+            margin-top: 10px;
+            min-height: 20px;
+        }
+
+        /* Модальные окна для мобильных */
+        .promotion-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 20, 25, 0.95);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+        
+        .promotion-choices {
+            display: flex;
+            background: #1a1f27;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid #3a7bd5;
+            max-width: 300px;
+            width: 100%;
+        }
+        
+        .promotion-piece {
+            padding: 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex: 1;
+            background: #2a2f36;
+            transition: background 0.3s;
+            min-height: 80px;
+        }
+        
+        .promotion-piece:hover {
+            background: #3a7bd5;
+        }
+        
+        .promotion-piece-icon {
+            width: 40px;
+            height: 40px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+        
+        .settings-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 20, 25, 0.95);
+            justify-content: center;
+            align-items: flex-start;
+            z-index: 1000;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        .settings-content {
+            background: #1a1f27;
+            border-radius: 12px;
+            padding: 20px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 1px solid #2a2f36;
+            animation: modalFadeIn 0.3s ease-out;
+            margin: auto;
+        }
+        
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #2a2f36;
+        }
+        
+        .settings-header h2 {
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        .close-settings {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #8b98a5;
+            cursor: pointer;
+            transition: color 0.3s;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+        }
+        
+        .close-settings:hover {
+            color: #ffffff;
+            background: #2a2f36;
+        }
+        
+        .settings-section {
+            margin-bottom: 20px;
+        }
+        
+        .settings-section h3 {
+            color: #ffffff;
+            margin-bottom: 12px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        .theme-selector {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .theme-option {
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+            background: #2a2f36;
+        }
+        
+        .theme-option:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .theme-option.active {
+            border-color: #3a7bd5;
+            background: rgba(58, 123, 213, 0.1);
+        }
+        
+        .theme-option .theme-preview {
+            width: 100%;
+            height: 40px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            border: 1px solid #2a2f36;
+        }
+        
+        .theme-classic .theme-preview {
+            background: linear-gradient(45deg, #bdbdbd 50%, #757575 50%);
+        }
+        
+        .theme-blue .theme-preview {
+            background: linear-gradient(45deg, #ffffff 50%, #42a5f5 50%);
+        }
+        
+        .theme-green .theme-preview {
+            background: linear-gradient(45deg, #ffffff 50%, #66bb6a 50%);
+        }
+        
+        .theme-purple .theme-preview {
+            background: linear-gradient(45deg, #ffffff 50%, #ab47bc 50%);
+        }
+        
+        .theme-dark .theme-preview {
+            background: linear-gradient(45deg, #616161 50%, #424242 50%);
+        }
+        
+        /* Стили для выбора темы фигур */
+        .pieces-theme-selector {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .pieces-theme-option {
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+            background: #2a2f36;
+        }
+        
+        .pieces-theme-option:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .pieces-theme-option.active {
+            border-color: #3a7bd5;
+            background: rgba(58, 123, 213, 0.1);
+        }
+        
+        .pieces-theme-option .pieces-preview {
+            width: 100%;
+            height: 60px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            border: 1px solid #2a2f36;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            background: #1a1f27;
+        }
+        
+        .piece-preview-icon {
+            width: 25px;
+            height: 25px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+        
+        .game-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .option-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: #2a2f36;
+            border-radius: 8px;
+        }
+        
+        .option-label {
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #6b7b8d;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: #3a7bd5;
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        
+        .settings-footer {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #2a2f36;
+        }
+        
+        .settings-footer button {
+            padding: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .btn-primary {
+            background: #3a7bd5;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #2a6bc5;
+        }
+        
+        /* Адаптивность для планшетов и больших телефонов */
+        @media (min-width: 480px) {
+            .game-controls {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .online-controls {
+                flex-direction: row;
+            }
+            
+            .join-game {
+                flex: 1;
+            }
+        }
+        
+        @media (min-width: 768px) {
+            body {
+                padding: 20px;
+            }
+            
+            .logo h1 {
+                font-size: 28px;
+            }
+            
+            .main-content {
+                display: grid;
+                grid-template-columns: 1fr 350px;
+                gap: 25px;
+            }
+            
+            .game-info {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 20px;
+            }
+            
+            .game-status {
+                flex-direction: row;
+                justify-content: space-between;
+            }
+            
+            .board {
+                grid-template-columns: repeat(8, 60px);
+                grid-template-rows: repeat(8, 60px);
+            }
+            
+            .coordinates {
+                font-size: 12px;
+            }
+            
+            .theme-selector {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .pieces-theme-selector {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .settings-footer {
+                flex-direction: row;
+                justify-content: flex-end;
+            }
+            
+            .legend-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (min-width: 1024px) {
+            .theme-selector {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .pieces-theme-selector {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .game-controls {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
+        @media (max-width: 320px) {
+            .board {
+                grid-template-columns: repeat(8, 35px);
+                grid-template-rows: repeat(8, 35px);
+            }
+            
+            .coordinates {
+                font-size: 10px;
+            }
+            
+            .game-controls {
+                grid-template-columns: 1fr;
+            }
+            
+            .theme-selector {
+                grid-template-columns: 1fr;
+            }
+            
+            .pieces-theme-selector {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Улучшения для touch-устройств */
+        @media (hover: none) and (pointer: coarse) {
+            .square {
+                cursor: default;
+            }
+            
+            button, .theme-option, .promotion-piece {
+                cursor: default;
+            }
+            
+            button:active, .theme-option:active, .promotion-piece:active {
+                transform: scale(0.98);
+            }
+            
+            .game-controls button:active {
+                background: #2a6bc5;
+            }
+        }
+        
+        /* Улучшение читаемости на маленьких экранах */
+        @media (max-width: 480px) {
+            .container {
+                padding: 0 5px;
+            }
+            
+            .game-board {
+                padding: 15px;
+            }
+            
+            .info-card {
+                padding: 12px;
+            }
+            
+            .card {
+                padding: 12px;
+            }
+            
+            .auth-content {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            .auth-header h2 {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <h1>Онлайн Шахматы</h1>
+                <p>Играйте с реальными соперниками</p>
+            </div>
+            
+            <!-- Новая секция авторизации -->
+            <div id="auth-section" class="auth-section">
+                <button id="showAuthModal">Войти / Регистрация</button>
+            </div>
+            
+            <!-- Информация о пользователе -->
+            <div id="user-info" class="user-info" style="display: none;">
+                <span id="user-greeting">Привет, </span>
+                <span id="user-rating">Рейтинг: 1000</span>
+                <button id="logoutBtn">Выйти</button>
+            </div>
+        </header>
+        
+        <div class="main-content">
+            <div class="game-section">
+                <div class="game-board">
+                    <div class="game-status">
+                        <div class="status waiting" id="status">Ожидание подключения...</div>
+                        <div class="timer">
+                            <div>
+                                <span>Ваше время</span>
+                                <span id="player-time">00:00</span>
+                            </div>
+                            <div>
+                                <span>Время соперника</span>
+                                <span id="opponent-time">00:00</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="board-container">
+                        <div class="board" id="board"></div>
+                    </div>
+                    
+                    <div class="game-controls">
+                        <button id="newGame">Новая игра</button>
+                        <button id="screenshot">Скриншот</button>
+                        <button id="showSettings">Настройки</button>
+                    </div>
+                </div>
+                
+                <div class="game-info">
+                    <div class="info-card">
+                        <h3>Рейтинг</h3>
+                        <div class="rating-container">
+                            <div>Ваш рейтинг</div>
+                            <div class="rating-value" id="player-rating">1000</div>
+                            <div class="rating-change" id="rating-change"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="info-card">
+                        <h3>Съеденные фигуры</h3>
+                        <div class="captured-pieces">
+                            <div id="captured-white"></div>
+                            <div id="captured-black"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="info-card">
+                        <h3>История ходов</h3>
+                        <div class="move-history">
+                            <div class="move-list" id="move-list"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="info-card">
+                        <h3>Легенда</h3>
+                        <div class="legend-grid">
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #81c784;"></div>
+                                <span>Выбранная фигура</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: rgba(76, 175, 80, 0.7); border-radius: 50%;"></div>
+                                <span>Возможный ход</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: rgba(244, 67, 54, 0.7);"></div>
+                                <span>Шах королю</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="sidebar">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Онлайн игра</h2>
+                    </div>
+                    <div class="online-controls">
+                        <button id="createGame">Создать игру</button>
+                        <div class="join-game">
+                            <input type="text" id="gameCodeInput" placeholder="Код игры">
+                            <button id="joinGame">Присоединиться</button>
+                        </div>
+                    </div>
+                    <div class="game-info-online" id="game-info-online" style="display: none;">
+                        <div>Код игры:</div>
+                        <div class="game-code" id="game-code"></div>
+                        <div>Ожидание соперника...</div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Таблица лидеров</h2>
+                        <div class="card-controls">
+                            <button id="refreshLeaderboard">⟳</button>
+                            <button id="resetLeaderboard">×</button>
+                        </div>
+                    </div>
+                    
+                    <div class="leaderboard-list" id="leaderboard-list">
+                        <!-- Данные будут заполнены через JavaScript -->
+                    </div>
+                    
+                    <div class="player-input">
+                        <input type="text" id="playerNameInput" placeholder="Ваше имя" maxlength="15">
+                        <button id="savePlayerName">OK</button>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Статистика</h2>
+                    </div>
+                    <div id="player-stats">
+                        <!-- Статистика будет заполнена через JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Модальное окно авторизации -->
+    <div class="auth-modal" id="auth-modal">
+        <div class="auth-content">
+            <div class="auth-header">
+                <h2 id="auth-modal-title">Вход в систему</h2>
+                <button class="close-auth" id="closeAuth">×</button>
+            </div>
+            
+            <div class="auth-tabs">
+                <button class="auth-tab active" data-tab="login">Вход</button>
+                <button class="auth-tab" data-tab="register">Регистрация</button>
+            </div>
+            
+            <div class="auth-form" id="login-form">
+                <input type="email" id="loginEmail" placeholder="Email" required>
+                <input type="password" id="loginPassword" placeholder="Пароль" required>
+                <button id="confirmLogin">Войти</button>
+                <div class="auth-error" id="login-error"></div>
+                <div class="auth-success" id="login-success"></div>
+            </div>
+            
+            <div class="auth-form" id="register-form" style="display: none;">
+                <input type="text" id="registerUsername" placeholder="Имя пользователя" required>
+                <input type="email" id="registerEmail" placeholder="Email" required>
+                <input type="password" id="registerPassword" placeholder="Пароль (минимум 6 символов)" required>
+                <input type="password" id="confirmPassword" placeholder="Подтвердите пароль" required>
+                <button id="confirmRegister">Зарегистрироваться</button>
+                <div class="auth-error" id="register-error"></div>
+                <div class="auth-success" id="register-success"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Модальное окно настроек -->
+    <div class="settings-modal" id="settings-modal">
+        <div class="settings-content">
+            <div class="settings-header">
+                <h2>Настройки игры</h2>
+                <button class="close-settings" id="closeSettings">×</button>
+            </div>
+            
+            <div class="settings-section">
+                <h3>Тема доски</h3>
+                <div class="theme-selector">
+                    <div class="theme-option theme-classic active" data-theme="classic">
+                        <div class="theme-preview"></div>
+                        <div>Классическая</div>
+                    </div>
+                    <div class="theme-option theme-blue" data-theme="blue">
+                        <div class="theme-preview"></div>
+                        <div>Синяя</div>
+                    </div>
+                    <div class="theme-option theme-green" data-theme="green">
+                        <div class="theme-preview"></div>
+                        <div>Зеленая</div>
+                    </div>
+                    <div class="theme-option theme-purple" data-theme="purple">
+                        <div class="theme-preview"></div>
+                        <div>Фиолетовая</div>
+                    </div>
+                    <div class="theme-option theme-dark" data-theme="dark">
+                        <div class="theme-preview"></div>
+                        <div>Темная</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="settings-section">
+                <h3>Тема фигур</h3>
+                <div class="pieces-theme-selector">
+                    <div class="pieces-theme-option active" data-pieces-theme="classic">
+                        <div class="pieces-preview">
+                            <div class="piece-preview-icon" style="background-image: url('https://via.placeholder.com/25')"></div>
+                            <div class="piece-preview-icon" style="background-image: url('https://via.placeholder.com/25')"></div>
+                            <div class="piece-preview-icon" style="background-image: url('https://via.placeholder.com/25')"></div>
+                        </div>
+                        <div>Классические</div>
+                    </div>
+                    <div class="pieces-theme-option" data-pieces-theme="modern">
+                        <div class="pieces-preview">
+                            <div class="piece-preview-icon" style="background-image: url('https://via.placeholder.com/25')"></div>
+                            <div class="piece-preview-icon" style="background-image: url('https://via.placeholder.com/25')"></div>
+                            <div class="piece-preview-icon" style="background-image: url('https://via.placeholder.com/25')"></div>
+                        </div>
+                        <div>Современные</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="settings-section">
+                <h3>Настройки игры</h3>
+                <div class="game-options">
+                    <div class="option-item">
+                        <span class="option-label">Показывать подсказки ходов</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="showHints" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="option-item">
+                        <span class="option-label">Звуковые эффекты</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="soundEffects">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="option-item">
+                        <span class="option-label">Анимация ходов</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="moveAnimation" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="settings-footer">
+                <button id="resetSettings" class="btn-secondary">Сбросить настройки</button>
+                <button id="saveSettings" class="btn-primary">Сохранить</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="promotion-modal" id="promotion-modal">
+        <div class="promotion-choices">
+            <div class="promotion-piece" data-piece="queen">
+                <div class="promotion-piece-icon" style="background-image: url('https://via.placeholder.com/40')"></div>
+            </div>
+            <div class="promotion-piece" data-piece="rook">
+                <div class="promotion-piece-icon" style="background-image: url('https://via.placeholder.com/40')"></div>
+            </div>
+            <div class="promotion-piece" data-piece="bishop">
+                <div class="promotion-piece-icon" style="background-image: url('https://via.placeholder.com/40')"></div>
+            </div>
+            <div class="promotion-piece" data-piece="knight">
+                <div class="promotion-piece-icon" style="background-image: url('https://via.placeholder.com/40')"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Конфигурация Firebase - ЗАМЕНИТЕ НА ВАШУ
+        const firebaseConfig = {
+            apiKey: "AIzaSyDl85C7gHqKhneLDbw6oG9dSykkUDtWdeQ",
+            authDomain: "chess-9e4d1.firebaseapp.com",
+            databaseURL: "https://chess-9e4d1-default-rtdb.firebaseio.com",
+            projectId: "chess-9e4d1",
+            storageBucket: "chess-9e4d1.firebasestorage.app",
+            messagingSenderId: "179976076139",
+            appId: "1:179976076139:web:549228cdba3dd9502caa2e"
+        };
+
+        // Инициализация Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const auth = firebase.auth();
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Глобальные переменные
+            let currentUser = null;
+            let playerData = {
+                name: "Гость",
+                rating: 1000,
+                stats: { wins: 0, losses: 0, draws: 0, totalGames: 0 }
+            };
+
+            // ===== ПЕРЕМЕННЫЕ ДЛЯ АВТОРИЗАЦИИ =====
+            const authModal = document.getElementById('auth-modal');
+            const showAuthModalBtn = document.getElementById('showAuthModal');
+            const closeAuthBtn = document.getElementById('closeAuth');
+            const authTabs = document.querySelectorAll('.auth-tab');
+            const loginForm = document.getElementById('login-form');
+            const registerForm = document.getElementById('register-form');
+            const confirmLoginBtn = document.getElementById('confirmLogin');
+            const confirmRegisterBtn = document.getElementById('confirmRegister');
+            const loginError = document.getElementById('login-error');
+            const registerError = document.getElementById('register-error');
+            const loginSuccess = document.getElementById('login-success');
+            const registerSuccess = document.getElementById('register-success');
+            
+            // Поля форм
+            const loginEmail = document.getElementById('loginEmail');
+            const loginPassword = document.getElementById('loginPassword');
+            const registerUsername = document.getElementById('registerUsername');
+            const registerEmail = document.getElementById('registerEmail');
+            const registerPassword = document.getElementById('registerPassword');
+            const confirmPassword = document.getElementById('confirmPassword');
+            
+            // Элементы пользовательского интерфейса
+            const userInfo = document.getElementById('user-info');
+            const userGreeting = document.getElementById('user-greeting');
+            const userRating = document.getElementById('user-rating');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const authSection = document.getElementById('auth-section');
+
+            // ===== ПЕРЕМЕННЫЕ ДЛЯ ИГРЫ =====
+            const boardElement = document.getElementById('board');
+            const statusElement = document.getElementById('status');
+            const newGameButton = document.getElementById('newGame');
+            const screenshotButton = document.getElementById('screenshot');
+            const showSettingsButton = document.getElementById('showSettings');
+            const closeSettingsButton = document.getElementById('closeSettings');
+            const saveSettingsButton = document.getElementById('saveSettings');
+            const resetSettingsButton = document.getElementById('resetSettings');
+            const refreshLeaderboardButton = document.getElementById('refreshLeaderboard');
+            const resetLeaderboardButton = document.getElementById('resetLeaderboard');
+            const savePlayerNameButton = document.getElementById('savePlayerName');
+            const playerNameInput = document.getElementById('playerNameInput');
+            const playerTimeElement = document.getElementById('player-time');
+            const opponentTimeElement = document.getElementById('opponent-time');
+            const capturedWhiteElement = document.getElementById('captured-white');
+            const capturedBlackElement = document.getElementById('captured-black');
+            const moveListElement = document.getElementById('move-list');
+            const promotionModal = document.getElementById('promotion-modal');
+            const settingsModal = document.getElementById('settings-modal');
+            const playerRatingElement = document.getElementById('player-rating');
+            const ratingChangeElement = document.getElementById('rating-change');
+            const leaderboardList = document.getElementById('leaderboard-list');
+            const playerStatsElement = document.getElementById('player-stats');
+            const themeOptions = document.querySelectorAll('.theme-option');
+            const piecesThemeOptions = document.querySelectorAll('.pieces-theme-option');
+            const showHintsCheckbox = document.getElementById('showHints');
+            const soundEffectsCheckbox = document.getElementById('soundEffects');
+            const moveAnimationCheckbox = document.getElementById('moveAnimation');
+            const createGameButton = document.getElementById('createGame');
+            const joinGameButton = document.getElementById('joinGame');
+            const gameCodeInput = document.getElementById('gameCodeInput');
+            const gameInfoOnline = document.getElementById('game-info-online');
+            const gameCodeElement = document.getElementById('game-code');
+            
+            // Игровое состояние
+            let board = [];
+            let selectedPiece = null;
+            let currentPlayer = 'white';
+            let validMoves = [];
+            let moveHistory = [];
+            let gameOver = false;
+            let playerTime = 0;
+            let opponentTime = 0;
+            let playerTimer;
+            let opponentTimer;
+            let capturedPieces = { white: [], black: [] };
+            let kingPositions = { white: { row: 7, col: 4 }, black: { row: 0, col: 4 } };
+            let enPassantTarget = null;
+            let castlingRights = {
+                white: { kingSide: true, queenSide: true },
+                black: { kingSide: true, queenSide: true }
+            };
+            let promotionPending = null;
+            
+            // Онлайн состояние
+            let currentGameId = null;
+            let playerColor = null;
+            let opponentId = null;
+            let gameRef = null;
+            let movesRef = null;
+            
+            // Настройки игры
+            let boardTheme = 'classic';
+            let gameSettings = {
+                showHints: true,
+                soundEffects: false,
+                moveAnimation: true,
+                piecesTheme: 'classic'
+            };
+
+            // Тема фигур
+            const piecesThemes = {
+                classic: {
+                    white: {
+                        king: 'https://via.placeholder.com/40',
+                        queen: 'https://via.placeholder.com/40',
+                        rook: 'https://via.placeholder.com/40',
+                        bishop: 'https://via.placeholder.com/40',
+                        knight: 'https://via.placeholder.com/40',
+                        pawn: 'https://via.placeholder.com/40'
+                    },
+                    black: {
+                        king: 'https://via.placeholder.com/40',
+                        queen: 'https://via.placeholder.com/40',
+                        rook: 'https://via.placeholder.com/40',
+                        bishop: 'https://via.placeholder.com/40',
+                        knight: 'https://via.placeholder.com/40',
+                        pawn: 'https://via.placeholder.com/40'
+                    }
+                }
+            };
+            let currentPiecesTheme = 'classic';
+            let pieceImages = piecesThemes[currentPiecesTheme];
+
+            // ===== ФУНКЦИИ АВТОРИЗАЦИИ =====
+            
+            // Показать модальное окно авторизации
+            function showAuthModal() {
+                authModal.style.display = 'flex';
+                switchToTab('login');
+                clearAuthMessages();
+                clearAuthForms();
+            }
+
+            // Скрыть модальное окно авторизации
+            function hideAuthModal() {
+                authModal.style.display = 'none';
+                clearAuthMessages();
+                clearAuthForms();
+            }
+
+            // Переключение между вкладками входа и регистрации
+            function switchToTab(tabName) {
+                authTabs.forEach(tab => {
+                    tab.classList.remove('active');
+                    if (tab.dataset.tab === tabName) {
+                        tab.classList.add('active');
+                    }
+                });
+
+                if (tabName === 'login') {
+                    loginForm.style.display = 'flex';
+                    registerForm.style.display = 'none';
+                    document.getElementById('auth-modal-title').textContent = 'Вход в систему';
+                } else {
+                    loginForm.style.display = 'none';
+                    registerForm.style.display = 'flex';
+                    document.getElementById('auth-modal-title').textContent = 'Регистрация';
+                }
+            }
+
+            // Очистка сообщений об ошибках/успехе
+            function clearAuthMessages() {
+                loginError.textContent = '';
+                registerError.textContent = '';
+                loginSuccess.textContent = '';
+                registerSuccess.textContent = '';
+            }
+
+            // Очистка полей форм
+            function clearAuthForms() {
+                loginEmail.value = '';
+                loginPassword.value = '';
+                registerUsername.value = '';
+                registerEmail.value = '';
+                registerPassword.value = '';
+                confirmPassword.value = '';
+            }
+
+            // Показать сообщение об ошибке
+            function showAuthError(element, message) {
+                element.textContent = message;
+                setTimeout(() => {
+                    element.textContent = '';
+                }, 5000);
+            }
+
+            // Показать сообщение об успехе
+            function showAuthSuccess(element, message) {
+                element.textContent = message;
+                setTimeout(() => {
+                    element.textContent = '';
+                }, 3000);
+            }
+
+            // Валидация email
+            function validateEmail(email) {
+                const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                return re.test(email);
+            }
+
+            // Регистрация нового пользователя
+            async function registerUser(email, password, username) {
+                try {
+                    // Создаем пользователя в Firebase Authentication
+                    const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                    const user = userCredential.user;
+                    
+                    // Создаем профиль в базе данных
+                    await database.ref('users/' + user.uid).set({
+                        username: username,
+                        email: email,
+                        rating: 1000,
+                        stats: {
+                            wins: 0,
+                            losses: 0,
+                            draws: 0,
+                            totalGames: 0
+                        },
+                        createdAt: firebase.database.ServerValue.TIMESTAMP,
+                        lastLogin: firebase.database.ServerValue.TIMESTAMP
+                    });
+                    
+                    return user;
+                } catch (error) {
+                    throw error;
+                }
+            }
+
+            // Вход пользователя
+            async function loginUser(email, password) {
+                try {
+                    const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                    const user = userCredential.user;
+                    
+                    // Обновляем время последнего входа
+                    await database.ref('users/' + user.uid).update({
+                        lastLogin: firebase.database.ServerValue.TIMESTAMP
+                    });
+                    
+                    return user;
+                } catch (error) {
+                    throw error;
+                }
+            }
+
+            // Выход пользователя
+            function logoutUser() {
+                auth.signOut().then(() => {
+                    updateUI();
+                    showMessage('Вы успешно вышли из системы');
+                }).catch((error) => {
+                    console.error('Ошибка выхода:', error);
+                    showMessage('Ошибка при выходе из системы');
+                });
+            }
+
+            // Загрузка данных пользователя
+            async function loadUserData(userId) {
+                try {
+                    const snapshot = await database.ref('users/' + userId).once('value');
+                    if (snapshot.exists()) {
+                        const userData = snapshot.val();
+                        playerData = {
+                            name: userData.username || userData.email.split('@')[0],
+                            rating: userData.rating || 1000,
+                            stats: userData.stats || {
+                                wins: 0,
+                                losses: 0,
+                                draws: 0,
+                                totalGames: 0
+                            }
+                        };
+                        updateUI();
+                        updateRatingDisplay();
+                        updatePlayerStats();
+                    }
+                } catch (error) {
+                    console.error('Ошибка загрузки данных пользователя:', error);
+                }
+            }
+
+            // Обновление интерфейса в зависимости от состояния авторизации
+            function updateUI() {
+                if (currentUser) {
+                    authSection.style.display = 'none';
+                    userInfo.style.display = 'flex';
+                    userGreeting.textContent = `Привет, ${playerData.name}`;
+                    userRating.textContent = `Рейтинг: ${playerData.rating}`;
+                } else {
+                    authSection.style.display = 'flex';
+                    userInfo.style.display = 'none';
+                    // Сбрасываем данные для гостя
+                    playerData = {
+                        name: "Гость",
+                        rating: 1000,
+                        stats: { wins: 0, losses: 0, draws: 0, totalGames: 0 }
+                    };
+                    updateRatingDisplay();
+                    updatePlayerStats();
+                }
+            }
+
+            // Вспомогательная функция для показа сообщений
+            function showMessage(message, isError = false) {
+                // Можно реализовать toast-уведомления или использовать alert
+                if (isError) {
+                    alert('Ошибка: ' + message);
+                } else {
+                    alert(message);
+                }
+            }
+
+            // ===== ФУНКЦИИ ИГРЫ =====
+            
+            // Инициализация игры
+            function initGame() {
+                createEmptyBoard();
+                setupPieces();
+                renderBoard();
+                currentPlayer = 'white';
+                statusElement.textContent = 'Ожидание подключения...';
+                statusElement.className = 'status waiting';
+                selectedPiece = null;
+                validMoves = [];
+                moveHistory = [];
+                gameOver = false;
+                playerTime = 0;
+                opponentTime = 0;
+                capturedPieces = { white: [], black: [] };
+                enPassantTarget = null;
+                castlingRights = {
+                    white: { kingSide: true, queenSide: true },
+                    black: { kingSide: true, queenSide: true }
+                };
+                updateCapturedPieces();
+                updateMoveHistory();
+                clearTimers();
+                updateTimers();
+                updatePlayerStats();
+                
+                updateRatingDisplay();
+                ratingChangeElement.classList.remove('show', 'positive', 'negative');
+                
+                // Сброс онлайн состояния
+                if (gameRef) {
+                    gameRef.off();
+                }
+                if (movesRef) {
+                    movesRef.off();
+                }
+                currentGameId = null;
+                playerColor = null;
+                opponentId = null;
+                gameInfoOnline.style.display = 'none';
+            }
+
+            function createEmptyBoard() {
+                board = [];
+                for (let row = 0; row < 8; row++) {
+                    board[row] = [];
+                    for (let col = 0; col < 8; col++) {
+                        board[row][col] = null;
+                    }
+                }
+            }
+
+            function setupPieces() {
+                // Упрощенная расстановка фигур для демонстрации
+                for (let col = 0; col < 8; col++) {
+                    board[1][col] = { type: 'pawn', color: 'black' };
+                    board[6][col] = { type: 'pawn', color: 'white' };
+                }
+                
+                // Остальные фигуры
+                board[0][0] = { type: 'rook', color: 'black' };
+                board[0][7] = { type: 'rook', color: 'black' };
+                board[7][0] = { type: 'rook', color: 'white' };
+                board[7][7] = { type: 'rook', color: 'white' };
+                
+                board[0][1] = { type: 'knight', color: 'black' };
+                board[0][6] = { type: 'knight', color: 'black' };
+                board[7][1] = { type: 'knight', color: 'white' };
+                board[7][6] = { type: 'knight', color: 'white' };
+                
+                board[0][2] = { type: 'bishop', color: 'black' };
+                board[0][5] = { type: 'bishop', color: 'black' };
+                board[7][2] = { type: 'bishop', color: 'white' };
+                board[7][5] = { type: 'bishop', color: 'white' };
+                
+                board[0][3] = { type: 'queen', color: 'black' };
+                board[7][3] = { type: 'queen', color: 'white' };
+                
+                board[0][4] = { type: 'king', color: 'black' };
+                board[7][4] = { type: 'king', color: 'white' };
+                
+                kingPositions = { white: { row: 7, col: 4 }, black: { row: 0, col: 4 } };
+            }
+
+            function renderBoard() {
+                boardElement.innerHTML = '';
+                for (let row = 0; row < 8; row++) {
+                    for (let col = 0; col < 8; col++) {
+                        const square = document.createElement('div');
+                        square.classList.add('square');
+                        square.classList.add((row + col) % 2 === 0 ? 'white' : 'black');
+                        square.dataset.row = row;
+                        square.dataset.col = col;
+                        
+                        // Добавляем координаты
+                        if (col === 0) {
+                            const rank = document.createElement('span');
+                            rank.classList.add('coordinates', 'coord-rank');
+                            rank.textContent = 8 - row;
+                            square.appendChild(rank);
+                        }
+                        
+                        if (row === 7) {
+                            const file = document.createElement('span');
+                            file.classList.add('coordinates', 'coord-file');
+                            file.textContent = String.fromCharCode(97 + col);
+                            square.appendChild(file);
+                        }
+                        
+                        const piece = board[row][col];
+                        if (piece) {
+                            const pieceElement = document.createElement('div');
+                            pieceElement.classList.add('piece');
+                            pieceElement.style.backgroundImage = `url('${pieceImages[piece.color][piece.type]}')`;
+                            square.appendChild(pieceElement);
+                        }
+                        
+                        square.addEventListener('click', () => handleSquareClick(row, col));
+                        boardElement.appendChild(square);
+                    }
+                }
+            }
+
+            function handleSquareClick(row, col) {
+                if (gameOver || !currentUser) {
+                    showMessage('Для игры необходимо войти в систему');
+                    return;
+                }
+                
+                if (!currentGameId) {
+                    showMessage('Создайте или присоединитесь к игре');
+                    return;
+                }
+                
+                // Упрощенная логика хода для демонстрации
+                const piece = board[row][col];
+                
+                if (piece && piece.color === playerColor) {
+                    selectedPiece = { row, col };
+                    // В реальной игре здесь должна быть логика определения допустимых ходов
+                    showMessage(`Выбрана фигура: ${piece.type} на ${String.fromCharCode(97 + col)}${8 - row}`);
+                } else if (selectedPiece) {
+                    // В реальной игре здесь должна быть проверка допустимости хода
+                    showMessage(`Ход с ${String.fromCharCode(97 + selectedPiece.col)}${8 - selectedPiece.row} на ${String.fromCharCode(97 + col)}${8 - row}`);
+                    selectedPiece = null;
+                }
+            }
+
+            function clearTimers() {
+                clearInterval(playerTimer);
+                clearInterval(opponentTimer);
+                playerTimer = null;
+                opponentTimer = null;
+            }
+
+            function updateTimers() {
+                const formatTime = (time) => {
+                    const minutes = Math.floor(time / 60);
+                    const seconds = time % 60;
+                    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                };
+                
+                playerTimeElement.textContent = formatTime(playerTime);
+                opponentTimeElement.textContent = formatTime(opponentTime);
+            }
+
+            function updateCapturedPieces() {
+                capturedWhiteElement.innerHTML = 'Белые: ';
+                capturedBlackElement.innerHTML = 'Черные: ';
+                
+                // Заглушка для демонстрации
+                capturedWhiteElement.innerHTML += 'Нет съеденных фигур';
+                capturedBlackElement.innerHTML += 'Нет съеденных фигур';
+            }
+
+            function updateMoveHistory() {
+                moveListElement.innerHTML = '<div class="move-item">История ходов появится здесь</div>';
+            }
+
+            function updateRatingDisplay() {
+                playerRatingElement.textContent = playerData.rating;
+            }
+
+            function updatePlayerStats() {
+                playerStatsElement.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <span>Победы:</span>
+                        <span style="color: #4caf50;">${playerData.stats.wins}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <span>Поражения:</span>
+                        <span style="color: #f44336;">${playerData.stats.losses}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <span>Ничьи:</span>
+                        <span style="color: #ffc107;">${playerData.stats.draws}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <span>Всего игр:</span>
+                        <span>${playerData.stats.totalGames}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>Процент побед:</span>
+                        <span>${playerData.stats.totalGames > 0 ? Math.round((playerData.stats.wins / playerData.stats.totalGames) * 100) : 0}%</span>
+                    </div>
+                `;
+            }
+
+            function takeScreenshot() {
+                html2canvas(document.querySelector('.container')).then(canvas => {
+                    const link = document.createElement('a');
+                    link.download = 'шахматы_' + new Date().toISOString().replace(/:/g, '-') + '.png';
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                    
+                    statusElement.textContent = 'Скриншот сохранен!';
+                    setTimeout(() => {
+                        if (!gameOver) {
+                            statusElement.textContent = 'Ожидание подключения...';
+                            statusElement.className = 'status waiting';
+                        }
+                    }, 2000);
+                });
+            }
+
+            // ===== ОНЛАЙН ФУНКЦИИ =====
+            
+            function createGame() {
+                if (!currentUser) {
+                    showMessage('Для создания игры необходимо войти в систему');
+                    return;
+                }
+                
+                const gameId = generateGameId();
+                currentGameId = gameId;
+                playerColor = 'white';
+                
+                gameInfoOnline.style.display = 'block';
+                gameCodeElement.textContent = gameId;
+                
+                statusElement.textContent = 'Ожидание соперника...';
+                statusElement.className = 'status waiting';
+                
+                showMessage(`Игра создана! Код: ${gameId}. Поделитесь им с другом.`);
+            }
+
+            function joinGame() {
+                if (!currentUser) {
+                    showMessage('Для присоединения к игре необходимо войти в систему');
+                    return;
+                }
+                
+                const gameId = gameCodeInput.value.trim();
+                if (!gameId) {
+                    showMessage('Введите код игры');
+                    return;
+                }
+                
+                currentGameId = gameId;
+                playerColor = 'black';
+                
+                gameInfoOnline.style.display = 'block';
+                gameCodeElement.textContent = gameId;
+                
+                statusElement.textContent = 'Ход соперника...';
+                statusElement.className = 'status opponent-turn';
+                
+                showMessage(`Присоединение к игре ${gameId}...`);
+            }
+
+            function generateGameId() {
+                return Math.random().toString(36).substring(2, 8).toUpperCase();
+            }
+
+            // ===== НАСТРОЙКИ =====
+            
+            function changeBoardTheme(theme) {
+                boardTheme = theme;
+                boardElement.className = 'board';
+                boardElement.classList.add(`theme-${theme}`);
+                localStorage.setItem('chessBoardTheme', theme);
+                
+                themeOptions.forEach(option => {
+                    option.classList.remove('active');
+                    if (option.dataset.theme === theme) {
+                        option.classList.add('active');
+                    }
+                });
+            }
+
+            function loadBoardTheme() {
+                const savedTheme = localStorage.getItem('chessBoardTheme');
+                if (savedTheme) {
+                    changeBoardTheme(savedTheme);
+                } else {
+                    changeBoardTheme('classic');
+                }
+            }
+
+            function changePiecesTheme(theme) {
+                if (!piecesThemes[theme]) return;
+                
+                currentPiecesTheme = theme;
+                pieceImages = piecesThemes[theme];
+                gameSettings.piecesTheme = theme;
+                localStorage.setItem('chessPiecesTheme', theme);
+                
+                piecesThemeOptions.forEach(option => {
+                    option.classList.remove('active');
+                    if (option.dataset.piecesTheme === theme) {
+                        option.classList.add('active');
+                    }
+                });
+                
+                renderBoard();
+            }
+
+            function loadPiecesTheme() {
+                const savedTheme = localStorage.getItem('chessPiecesTheme');
+                if (savedTheme && piecesThemes[savedTheme]) {
+                    changePiecesTheme(savedTheme);
+                } else {
+                    changePiecesTheme('classic');
+                }
+            }
+
+            function loadGameSettings() {
+                const savedSettings = localStorage.getItem('chessGameSettings');
+                if (savedSettings) {
+                    gameSettings = JSON.parse(savedSettings);
+                    
+                    showHintsCheckbox.checked = gameSettings.showHints;
+                    soundEffectsCheckbox.checked = gameSettings.soundEffects;
+                    moveAnimationCheckbox.checked = gameSettings.moveAnimation;
+                    
+                    if (gameSettings.piecesTheme) {
+                        changePiecesTheme(gameSettings.piecesTheme);
+                    }
+                }
+            }
+
+            function saveGameSettings() {
+                localStorage.setItem('chessGameSettings', JSON.stringify(gameSettings));
+            }
+
+            function openSettingsModal() {
+                settingsModal.style.display = 'flex';
+            }
+
+            function closeSettingsModal() {
+                settingsModal.style.display = 'none';
+            }
+
+            function saveSettingsFromModal() {
+                gameSettings.showHints = showHintsCheckbox.checked;
+                gameSettings.soundEffects = soundEffectsCheckbox.checked;
+                gameSettings.moveAnimation = moveAnimationCheckbox.checked;
+                gameSettings.piecesTheme = currentPiecesTheme;
+                
+                saveGameSettings();
+                closeSettingsModal();
+                
+                showMessage('Настройки сохранены!');
+            }
+
+            function resetGameSettings() {
+                gameSettings = {
+                    showHints: true,
+                    soundEffects: false,
+                    moveAnimation: true,
+                    piecesTheme: 'classic'
+                };
+                
+                showHintsCheckbox.checked = gameSettings.showHints;
+                soundEffectsCheckbox.checked = gameSettings.soundEffects;
+                moveAnimationCheckbox.checked = gameSettings.moveAnimation;
+                
+                changePiecesTheme('classic');
+                changeBoardTheme('classic');
+                saveGameSettings();
+                
+                showMessage('Настройки сброшены к значениям по умолчанию!');
+            }
+
+            // ===== ТАБЛИЦА ЛИДЕРОВ =====
+            
+            async function loadLeaderboard() {
+                return new Promise((resolve) => {
+                    if (!currentUser) {
+                        const savedLeaderboard = localStorage.getItem('chessLeaderboard');
+                        resolve(savedLeaderboard ? JSON.parse(savedLeaderboard) : []);
+                        return;
+                    }
+                    
+                    // Заглушка для демонстрации
+                    const demoLeaderboard = [
+                        { name: 'Алексей', rating: 1560, wins: 12, losses: 3, draws: 2 },
+                        { name: 'Мария', rating: 1480, wins: 10, losses: 5, draws: 1 },
+                        { name: 'Дмитрий', rating: 1420, wins: 8, losses: 4, draws: 3 },
+                        { name: 'Ирина', rating: 1380, wins: 7, losses: 6, draws: 2 },
+                        { name: 'Сергей', rating: 1350, wins: 6, losses: 5, draws: 4 }
+                    ];
+                    resolve(demoLeaderboard);
+                });
+            }
+
+            function updateLeaderboard() {
+                loadLeaderboard().then(leaderboard => {
+                    displayLeaderboard(leaderboard);
+                    localStorage.setItem('chessLeaderboard', JSON.stringify(leaderboard));
+                });
+            }
+
+            function displayLeaderboard(leaderboard) {
+                leaderboardList.innerHTML = '';
+                
+                if (leaderboard.length === 0) {
+                    leaderboardList.innerHTML = '<div class="leaderboard-item">Нет данных о игроках</div>';
+                    return;
+                }
+                
+                const displayCount = Math.min(leaderboard.length, 7);
+                
+                for (let i = 0; i < displayCount; i++) {
+                    const player = leaderboard[i];
+                    const item = document.createElement('div');
+                    item.classList.add('leaderboard-item');
+                    
+                    if (player.name === playerData.name) {
+                        item.classList.add('current-player');
+                    }
+                    
+                    item.innerHTML = `
+                        <div class="leaderboard-rank">${i + 1}</div>
+                        <div class="leaderboard-player">
+                            ${player.name}
+                            <div class="leaderboard-stats">
+                                <span>${player.wins}П</span>
+                                <span>${player.losses}Пр</span>
+                                <span>${player.draws}Н</span>
+                            </div>
+                        </div>
+                        <div class="leaderboard-rating">${player.rating}</div>
+                    `;
+                    
+                    leaderboardList.appendChild(item);
+                }
+            }
+
+            function resetLeaderboard() {
+                if (confirm('Вы уверены, что хотите сбросить таблицу лидеров? Все данные будут удалены.')) {
+                    localStorage.removeItem('chessLeaderboard');
+                    displayLeaderboard([]);
+                }
+            }
+
+            function savePlayerName() {
+                const newName = playerNameInput.value.trim();
+                if (newName) {
+                    playerData.name = newName;
+                    updateUI();
+                    
+                    const originalText = savePlayerNameButton.textContent;
+                    savePlayerNameButton.textContent = '✓';
+                    setTimeout(() => {
+                        savePlayerNameButton.textContent = originalText;
+                    }, 1000);
+                }
+            }
+
+            // ===== ОБРАБОТЧИКИ СОБЫТИЙ =====
+
+            // Авторизация
+            showAuthModalBtn.addEventListener('click', showAuthModal);
+            closeAuthBtn.addEventListener('click', hideAuthModal);
+
+            authTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    switchToTab(tab.dataset.tab);
+                });
+            });
+
+            confirmRegisterBtn.addEventListener('click', async () => {
+                const username = registerUsername.value.trim();
+                const email = registerEmail.value.trim();
+                const password = registerPassword.value.trim();
+                const passwordConfirm = confirmPassword.value.trim();
+
+                // Валидация
+                if (!username || !email || !password || !passwordConfirm) {
+                    showAuthError(registerError, 'Все поля обязательны для заполнения');
+                    return;
+                }
+
+                if (username.length < 3) {
+                    showAuthError(registerError, 'Имя пользователя должно быть не менее 3 символов');
+                    return;
+                }
+
+                if (password.length < 6) {
+                    showAuthError(registerError, 'Пароль должен быть не менее 6 символов');
+                    return;
+                }
+
+                if (password !== passwordConfirm) {
+                    showAuthError(registerError, 'Пароли не совпадают');
+                    return;
+                }
+
+                if (!validateEmail(email)) {
+                    showAuthError(registerError, 'Введите корректный email');
+                    return;
+                }
+
+                try {
+                    confirmRegisterBtn.textContent = 'Регистрация...';
+                    confirmRegisterBtn.disabled = true;
+
+                    await registerUser(email, password, username);
+                    showAuthSuccess(registerSuccess, 'Регистрация прошла успешно!');
+                    setTimeout(() => {
+                        hideAuthModal();
+                        showMessage('Добро пожаловать в игру!');
+                    }, 1000);
+                } catch (error) {
+                    console.error('Ошибка регистрации:', error);
+                    
+                    switch (error.code) {
+                        case 'auth/email-already-in-use':
+                            showAuthError(registerError, 'Этот email уже используется');
+                            break;
+                        case 'auth/invalid-email':
+                            showAuthError(registerError, 'Неверный формат email');
+                            break;
+                        case 'auth/weak-password':
+                            showAuthError(registerError, 'Пароль слишком слабый');
+                            break;
+                        default:
+                            showAuthError(registerError, 'Ошибка регистрации: ' + error.message);
+                    }
+                } finally {
+                    confirmRegisterBtn.textContent = 'Зарегистрироваться';
+                    confirmRegisterBtn.disabled = false;
+                }
+            });
+
+            confirmLoginBtn.addEventListener('click', async () => {
+                const email = loginEmail.value.trim();
+                const password = loginPassword.value.trim();
+
+                if (!email || !password) {
+                    showAuthError(loginError, 'Заполните все поля');
+                    return;
+                }
+
+                try {
+                    confirmLoginBtn.textContent = 'Вход...';
+                    confirmLoginBtn.disabled = true;
+
+                    await loginUser(email, password);
+                    showAuthSuccess(loginSuccess, 'Вход выполнен успешно!');
+                    setTimeout(() => {
+                        hideAuthModal();
+                    }, 1000);
+                } catch (error) {
+                    console.error('Ошибка входа:', error);
+                    
+                    switch (error.code) {
+                        case 'auth/user-not-found':
+                            showAuthError(loginError, 'Пользователь не найден');
+                            break;
+                        case 'auth/wrong-password':
+                            showAuthError(loginError, 'Неверный пароль');
+                            break;
+                        case 'auth/invalid-email':
+                            showAuthError(loginError, 'Неверный формат email');
+                            break;
+                        default:
+                            showAuthError(loginError, 'Ошибка входа: ' + error.message);
+                    }
+                } finally {
+                    confirmLoginBtn.textContent = 'Войти';
+                    confirmLoginBtn.disabled = false;
+                }
+            });
+
+            logoutBtn.addEventListener('click', logoutUser);
+
+            // Игра
+            newGameButton.addEventListener('click', () => {
+                initGame();
+            });
+            
+            screenshotButton.addEventListener('click', takeScreenshot);
+            
+            showSettingsButton.addEventListener('click', openSettingsModal);
+            closeSettingsButton.addEventListener('click', closeSettingsModal);
+            saveSettingsButton.addEventListener('click', saveSettingsFromModal);
+            resetSettingsButton.addEventListener('click', resetGameSettings);
+            refreshLeaderboardButton.addEventListener('click', updateLeaderboard);
+            resetLeaderboardButton.addEventListener('click', resetLeaderboard);
+            savePlayerNameButton.addEventListener('click', savePlayerName);
+            
+            createGameButton.addEventListener('click', createGame);
+            joinGameButton.addEventListener('click', joinGame);
+            
+            // Тема доски
+            themeOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    changeBoardTheme(option.dataset.theme);
+                });
+            });
+            
+            // Тема фигур
+            piecesThemeOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    changePiecesTheme(option.dataset.piecesTheme);
+                });
+            });
+            
+            // Закрытие модальных окон по клику вне их
+            authModal.addEventListener('click', (e) => {
+                if (e.target === authModal) {
+                    hideAuthModal();
+                }
+            });
+            
+            settingsModal.addEventListener('click', (e) => {
+                if (e.target === settingsModal) {
+                    closeSettingsModal();
+                }
+            });
+            
+            // Enter для форм
+            loginPassword.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    confirmLoginBtn.click();
+                }
+            });
+            
+            confirmPassword.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    confirmRegisterBtn.click();
+                }
+            });
+
+            // ===== СЛУШАТЕЛЬ СОСТОЯНИЯ АВТОРИЗАЦИИ =====
+            auth.onAuthStateChanged((user) => {
+                if (user) {
+                    currentUser = user.uid;
+                    loadUserData(user.uid);
+                } else {
+                    currentUser = null;
+                    updateUI();
+                }
+            });
+
+            // ===== ИНИЦИАЛИЗАЦИЯ =====
+            loadBoardTheme();
+            loadPiecesTheme();
+            loadGameSettings();
+            initGame();
+            updateLeaderboard();
+            updateUI();
+        });
+    </script>
+</body>
+</html>
