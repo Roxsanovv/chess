@@ -2528,16 +2528,6 @@
                         resolve(savedLeaderboard ? JSON.parse(savedLeaderboard) : []);
                         return;
                     }
-                    
-                    // Заглушка для демонстрации
-                    const demoLeaderboard = [
-                        { name: 'Алексей', rating: 1560, wins: 12, losses: 3, draws: 2 },
-                        { name: 'Мария', rating: 1480, wins: 10, losses: 5, draws: 1 },
-                        { name: 'Дмитрий', rating: 1420, wins: 8, losses: 4, draws: 3 },
-                        { name: 'Ирина', rating: 1380, wins: 7, losses: 6, draws: 2 },
-                        { name: 'Сергей', rating: 1350, wins: 6, losses: 5, draws: 4 }
-                    ];
-                    resolve(demoLeaderboard);
                 });
             }
 
