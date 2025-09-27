@@ -1320,10 +1320,6 @@
 <body>
     <div class="container">
         <header>
-            <div class="logo">
-                <h1>Онлайн Шахматы</h1>
-                <p>Играйте с реальными соперниками</p>
-            </div>
             
             <!-- Новая секция авторизации -->
             <div id="auth-section" class="auth-section">
@@ -1333,7 +1329,7 @@
             <!-- Информация о пользователе -->
             <div id="user-info" class="user-info" style="display: none;">
                 <span id="user-greeting">Привет, </span>
-                <span id="user-rating">Рейтинг: 1200</span>
+                <span id="user-rating">Рейтинг: 1000</span>
                 <button id="logoutBtn">Выйти</button>
             </div>
         </header>
@@ -1371,7 +1367,7 @@
                         <h3>Рейтинг</h3>
                         <div class="rating-container">
                             <div>Ваш рейтинг</div>
-                            <div class="rating-value" id="player-rating">1200</div>
+                            <div class="rating-value" id="player-rating">1000</div>
                             <div class="rating-change" id="rating-change"></div>
                         </div>
                     </div>
@@ -1533,17 +1529,17 @@
                 <div class="pieces-theme-selector">
                     <div class="pieces-theme-option active" data-pieces-theme="classic">
                         <div class="pieces-preview">
-                            <div class="piece-preview-icon" style="background-image: url('https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wk.png')"></div>
-                            <div class="piece-preview-icon" style="background-image: url('https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wp.png')"></div>
-                            <div class="piece-preview-icon" style="background-image: url('https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wq.png')"></div>
+                            <div class="piece-preview-icon" style="background-image: url('img/king.png')"></div>
+                            <div class="piece-preview-icon" style="background-image: url('img/pawn.png')"></div>
+                            <div class="piece-preview-icon" style="background-image: url('img/queen.png')"></div>
                         </div>
                         <div>Классические</div>
                     </div>
                     <div class="pieces-theme-option" data-pieces-theme="modern">
                         <div class="pieces-preview">
-                            <div class="piece-preview-icon" style="background-image: url('https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bk.png')"></div>
-                            <div class="piece-preview-icon" style="background-image: url('https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bp.png')"></div>
-                            <div class="piece-preview-icon" style="background-image: url('https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bq.png')"></div>
+                            <div class="piece-preview-icon" style="background-image: url('img/wm5.svg')"></div>
+                            <div class="piece-preview-icon" style="background-image: url('img/wm3.svg')"></div>
+                            <div class="piece-preview-icon" style="background-image: url('img/wm2.svg')"></div>
                         </div>
                         <div>Современные</div>
                     </div>
@@ -1587,16 +1583,16 @@
     <div class="promotion-modal" id="promotion-modal">
         <div class="promotion-choices">
             <div class="promotion-piece" data-piece="queen">
-                <div class="promotion-piece-icon" style="background-image: url('https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wq.png')"></div>
+                <div class="promotion-piece-icon" style="background-image: url('img/queen.png')"></div>
             </div>
             <div class="promotion-piece" data-piece="rook">
-                <div class="promotion-piece-icon" style="background-image: url('https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wr.png')"></div>
+                <div class="promotion-piece-icon" style="background-image: url('img/rook.png')"></div>
             </div>
             <div class="promotion-piece" data-piece="bishop">
-                <div class="promotion-piece-icon" style="background-image: url('https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wb.png')"></div>
+                <div class="promotion-piece-icon" style="background-image: url('img/bishop.png')"></div>
             </div>
             <div class="promotion-piece" data-piece="knight">
-                <div class="promotion-piece-icon" style="background-image: url('https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wn.png')"></div>
+                <div class="promotion-piece-icon" style="background-image: url('img/knight.png')"></div>
             </div>
         </div>
     </div>
@@ -1604,13 +1600,13 @@
     <script>
         // Конфигурация Firebase - ЗАМЕНИТЕ НА ВАШУ
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT.firebaseapp.com",
-            databaseURL: "https://YOUR_PROJECT.firebaseio.com",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_PROJECT.appspot.com",
-            messagingSenderId: "YOUR_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            apiKey: "AIzaSyDl85C7gHqKhneLDbw6oG9dSykkUDtWdeQ",
+            authDomain: "chess-9e4d1.firebaseapp.com",
+            databaseURL: "https://chess-9e4d1-default-rtdb.firebaseio.com",
+            projectId: "chess-9e4d1",
+            storageBucket: "chess-9e4d1.firebasestorage.app",
+            messagingSenderId: "179976076139",
+            appId: "1:179976076139:web:549228cdba3dd9502caa2e"
         };
 
         // Инициализация Firebase
@@ -1737,20 +1733,20 @@
             const piecesThemes = {
                 classic: {
                     white: {
-                        king: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wk.png',
-                        queen: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wq.png',
-                        rook: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wr.png',
-                        bishop: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wb.png',
-                        knight: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wn.png',
-                        pawn: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wp.png'
+                        king: 'img/king.png',
+                        queen: 'img/queen.png',
+                        rook: 'img/rook.png',
+                        bishop: 'img/bishop.png',
+                        knight: 'img/knight.png',
+                        pawn: 'img/pawn.png'
                     },
                     black: {
-                        king: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bk.png',
-                        queen: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bq.png',
-                        rook: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/br.png',
-                        bishop: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bb.png',
-                        knight: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bn.png',
-                        pawn: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bp.png'
+                        king: 'img/blackking.png',
+                        queen: 'img/blackqueen.png',
+                        rook: 'img/blackrook.png',
+                        bishop: 'img/blackbishop.png',
+                        knight: 'img/blackknight.png',
+                        pawn: 'img/blackpawn.png'
                     }
                 },
                 modern: {
