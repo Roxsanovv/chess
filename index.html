@@ -11,6 +11,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        /* Все стили остаются без изменений */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -39,6 +40,18 @@
             margin-bottom: 20px;
             padding-bottom: 15px;
             border-bottom: 1px solid #2a2f36;
+        }
+        
+        .logo h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 5px;
+        }
+        
+        .logo p {
+            font-size: 14px;
+            color: #8b98a5;
         }
         
         .auth-section {
@@ -1307,6 +1320,10 @@
 <body>
     <div class="container">
         <header>
+            <div class="logo">
+                <h1>Онлайн Шахматы</h1>
+                <p>Играйте с реальными соперниками</p>
+            </div>
             
             <!-- Новая секция авторизации -->
             <div id="auth-section" class="auth-section">
@@ -1316,7 +1333,7 @@
             <!-- Информация о пользователе -->
             <div id="user-info" class="user-info" style="display: none;">
                 <span id="user-greeting">Привет, </span>
-                <span id="user-rating">Рейтинг: 1000</span>
+                <span id="user-rating">Рейтинг: 1200</span>
                 <button id="logoutBtn">Выйти</button>
             </div>
         </header>
@@ -1354,7 +1371,7 @@
                         <h3>Рейтинг</h3>
                         <div class="rating-container">
                             <div>Ваш рейтинг</div>
-                            <div class="rating-value" id="player-rating">1000</div>
+                            <div class="rating-value" id="player-rating">1200</div>
                             <div class="rating-change" id="rating-change"></div>
                         </div>
                     </div>
@@ -1516,17 +1533,17 @@
                 <div class="pieces-theme-selector">
                     <div class="pieces-theme-option active" data-pieces-theme="classic">
                         <div class="pieces-preview">
-                            <div class="piece-preview-icon" style="background-image: url('https://via.placeholder.com/25')"></div>
-                            <div class="piece-preview-icon" style="background-image: url('https://via.placeholder.com/25')"></div>
-                            <div class="piece-preview-icon" style="background-image: url('https://via.placeholder.com/25')"></div>
+                            <div class="piece-preview-icon" style="background-image: url('https://via.placeholder.com/25/000000/FFFFFF?text=K')"></div>
+                            <div class="piece-preview-icon" style="background-image: url('https://via.placeholder.com/25/FFFFFF/000000?text=P')"></div>
+                            <div class="piece-preview-icon" style="background-image: url('https://via.placeholder.com/25/000000/FFFFFF?text=Q')"></div>
                         </div>
                         <div>Классические</div>
                     </div>
                     <div class="pieces-theme-option" data-pieces-theme="modern">
                         <div class="pieces-preview">
-                            <div class="piece-preview-icon" style="background-image: url('https://via.placeholder.com/25')"></div>
-                            <div class="piece-preview-icon" style="background-image: url('https://via.placeholder.com/25')"></div>
-                            <div class="piece-preview-icon" style="background-image: url('https://via.placeholder.com/25')"></div>
+                            <div class="piece-preview-icon" style="background-image: url('https://via.placeholder.com/25/4CAF50/FFFFFF?text=K')"></div>
+                            <div class="piece-preview-icon" style="background-image: url('https://via.placeholder.com/25/2196F3/FFFFFF?text=P')"></div>
+                            <div class="piece-preview-icon" style="background-image: url('https://via.placeholder.com/25/FF9800/FFFFFF?text=Q')"></div>
                         </div>
                         <div>Современные</div>
                     </div>
@@ -1570,16 +1587,16 @@
     <div class="promotion-modal" id="promotion-modal">
         <div class="promotion-choices">
             <div class="promotion-piece" data-piece="queen">
-                <div class="promotion-piece-icon" style="background-image: url('https://via.placeholder.com/40')"></div>
+                <div class="promotion-piece-icon" style="background-image: url('https://via.placeholder.com/40/FFFFFF/000000?text=Q')"></div>
             </div>
             <div class="promotion-piece" data-piece="rook">
-                <div class="promotion-piece-icon" style="background-image: url('https://via.placeholder.com/40')"></div>
+                <div class="promotion-piece-icon" style="background-image: url('https://via.placeholder.com/40/FFFFFF/000000?text=R')"></div>
             </div>
             <div class="promotion-piece" data-piece="bishop">
-                <div class="promotion-piece-icon" style="background-image: url('https://via.placeholder.com/40')"></div>
+                <div class="promotion-piece-icon" style="background-image: url('https://via.placeholder.com/40/FFFFFF/000000?text=B')"></div>
             </div>
             <div class="promotion-piece" data-piece="knight">
-                <div class="promotion-piece-icon" style="background-image: url('https://via.placeholder.com/40')"></div>
+                <div class="promotion-piece-icon" style="background-image: url('https://via.placeholder.com/40/FFFFFF/000000?text=N')"></div>
             </div>
         </div>
     </div>
@@ -1587,17 +1604,23 @@
     <script>
         // Конфигурация Firebase - ЗАМЕНИТЕ НА ВАШУ
         const firebaseConfig = {
-            apiKey: "AIzaSyDl85C7gHqKhneLDbw6oG9dSykkUDtWdeQ",
-            authDomain: "chess-9e4d1.firebaseapp.com",
-            databaseURL: "https://chess-9e4d1-default-rtdb.firebaseio.com",
-            projectId: "chess-9e4d1",
-            storageBucket: "chess-9e4d1.firebasestorage.app",
-            messagingSenderId: "179976076139",
-            appId: "1:179976076139:web:549228cdba3dd9502caa2e"
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT.firebaseio.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
         };
 
         // Инициализация Firebase
-        firebase.initializeApp(firebaseConfig);
+        try {
+            firebase.initializeApp(firebaseConfig);
+            console.log("Firebase инициализирован успешно");
+        } catch (error) {
+            console.error("Ошибка инициализации Firebase:", error);
+        }
+
         const database = firebase.database();
         const auth = firebase.auth();
 
@@ -1606,7 +1629,7 @@
             let currentUser = null;
             let playerData = {
                 name: "Гость",
-                rating: 1000,
+                rating: 1200,
                 stats: { wins: 0, losses: 0, draws: 0, totalGames: 0 }
             };
 
@@ -1710,24 +1733,42 @@
                 piecesTheme: 'classic'
             };
 
-            // Тема фигур
+            // Тема фигур - ИСПРАВЛЕННЫЕ URL
             const piecesThemes = {
                 classic: {
                     white: {
-                        king: 'https://via.placeholder.com/40',
-                        queen: 'https://via.placeholder.com/40',
-                        rook: 'https://via.placeholder.com/40',
-                        bishop: 'https://via.placeholder.com/40',
-                        knight: 'https://via.placeholder.com/40',
-                        pawn: 'https://via.placeholder.com/40'
+                        king: 'https://via.placeholder.com/40/FFFFFF/000000?text=K',
+                        queen: 'https://via.placeholder.com/40/FFFFFF/000000?text=Q',
+                        rook: 'https://via.placeholder.com/40/FFFFFF/000000?text=R',
+                        bishop: 'https://via.placeholder.com/40/FFFFFF/000000?text=B',
+                        knight: 'https://via.placeholder.com/40/FFFFFF/000000?text=N',
+                        pawn: 'https://via.placeholder.com/40/FFFFFF/000000?text=P'
                     },
                     black: {
-                        king: 'https://via.placeholder.com/40',
-                        queen: 'https://via.placeholder.com/40',
-                        rook: 'https://via.placeholder.com/40',
-                        bishop: 'https://via.placeholder.com/40',
-                        knight: 'https://via.placeholder.com/40',
-                        pawn: 'https://via.placeholder.com/40'
+                        king: 'https://via.placeholder.com/40/000000/FFFFFF?text=K',
+                        queen: 'https://via.placeholder.com/40/000000/FFFFFF?text=Q',
+                        rook: 'https://via.placeholder.com/40/000000/FFFFFF?text=R',
+                        bishop: 'https://via.placeholder.com/40/000000/FFFFFF?text=B',
+                        knight: 'https://via.placeholder.com/40/000000/FFFFFF?text=N',
+                        pawn: 'https://via.placeholder.com/40/000000/FFFFFF?text=P'
+                    }
+                },
+                modern: {
+                    white: {
+                        king: 'https://via.placeholder.com/40/4CAF50/FFFFFF?text=K',
+                        queen: 'https://via.placeholder.com/40/2196F3/FFFFFF?text=Q',
+                        rook: 'https://via.placeholder.com/40/FF9800/FFFFFF?text=R',
+                        bishop: 'https://via.placeholder.com/40/9C27B0/FFFFFF?text=B',
+                        knight: 'https://via.placeholder.com/40/607D8B/FFFFFF?text=N',
+                        pawn: 'https://via.placeholder.com/40/795548/FFFFFF?text=P'
+                    },
+                    black: {
+                        king: 'https://via.placeholder.com/40/4CAF50/000000?text=K',
+                        queen: 'https://via.placeholder.com/40/2196F3/000000?text=Q',
+                        rook: 'https://via.placeholder.com/40/FF9800/000000?text=R',
+                        bishop: 'https://via.placeholder.com/40/9C27B0/000000?text=B',
+                        knight: 'https://via.placeholder.com/40/607D8B/000000?text=N',
+                        pawn: 'https://via.placeholder.com/40/795548/000000?text=P'
                     }
                 }
             };
@@ -1822,7 +1863,7 @@
                     await database.ref('users/' + user.uid).set({
                         username: username,
                         email: email,
-                        rating: 1000,
+                        rating: 1200,
                         stats: {
                             wins: 0,
                             losses: 0,
@@ -1875,7 +1916,7 @@
                         const userData = snapshot.val();
                         playerData = {
                             name: userData.username || userData.email.split('@')[0],
-                            rating: userData.rating || 1000,
+                            rating: userData.rating || 1200,
                             stats: userData.stats || {
                                 wins: 0,
                                 losses: 0,
@@ -1905,7 +1946,7 @@
                     // Сбрасываем данные для гостя
                     playerData = {
                         name: "Гость",
-                        rating: 1000,
+                        rating: 1200,
                         stats: { wins: 0, losses: 0, draws: 0, totalGames: 0 }
                     };
                     updateRatingDisplay();
@@ -2038,6 +2079,7 @@
                         if (piece) {
                             const pieceElement = document.createElement('div');
                             pieceElement.classList.add('piece');
+                            // ИСПРАВЛЕННЫЙ КОД - правильные URL для фигур
                             pieceElement.style.backgroundImage = `url('${pieceImages[piece.color][piece.type]}')`;
                             square.appendChild(pieceElement);
                         }
@@ -2162,13 +2204,59 @@
                 currentGameId = gameId;
                 playerColor = 'white';
                 
-                gameInfoOnline.style.display = 'block';
-                gameCodeElement.textContent = gameId;
+                // ИСПРАВЛЕННЫЙ КОД - правильная работа с Firebase
+                gameRef = database.ref('games/' + gameId);
+                movesRef = database.ref('moves/' + gameId);
                 
-                statusElement.textContent = 'Ожидание соперника...';
-                statusElement.className = 'status waiting';
-                
-                showMessage(`Игра создана! Код: ${gameId}. Поделитесь им с другом.`);
+                // Создаем игру в Firebase
+                gameRef.set({
+                    playerWhite: currentUser,
+                    playerBlack: null,
+                    status: 'waiting',
+                    created: firebase.database.ServerValue.TIMESTAMP,
+                    currentPlayer: 'white'
+                }).then(() => {
+                    gameInfoOnline.style.display = 'block';
+                    gameCodeElement.textContent = gameId;
+                    
+                    statusElement.textContent = 'Ожидание соперника...';
+                    statusElement.className = 'status waiting';
+                    
+                    showMessage(`Игра создана! Код: ${gameId}. Поделитесь им с другом.`);
+                    
+                    // Слушаем изменения в игре
+                    gameRef.on('value', (snapshot) => {
+                        const gameData = snapshot.val();
+                        if (gameData && gameData.playerBlack) {
+                            // Второй игрок присоединился
+                            opponentId = gameData.playerBlack;
+                            statusElement.textContent = 'Ваш ход (белые)';
+                            statusElement.className = 'status player-turn';
+                            startPlayerTimer();
+                            
+                            // Загружаем данные соперника
+                            database.ref('users/' + opponentId).once('value').then((userSnapshot) => {
+                                if (userSnapshot.exists()) {
+                                    const opponentData = userSnapshot.val();
+                                    showMessage(`Соперник присоединился: ${opponentData.username}`);
+                                }
+                            });
+                        }
+                    });
+                    
+                    // Слушаем ходы
+                    movesRef.on('child_added', (snapshot) => {
+                        const move = snapshot.val();
+                        if (move.player !== currentUser) {
+                            // Ход соперника
+                            handleOpponentMove(move);
+                        }
+                    });
+                    
+                }).catch((error) => {
+                    console.error('Ошибка создания игры:', error);
+                    showMessage('Ошибка создания игры: ' + error.message, true);
+                });
             }
 
             function joinGame() {
@@ -2186,17 +2274,126 @@
                 currentGameId = gameId;
                 playerColor = 'black';
                 
-                gameInfoOnline.style.display = 'block';
-                gameCodeElement.textContent = gameId;
+                gameRef = database.ref('games/' + gameId);
+                movesRef = database.ref('moves/' + gameId);
                 
-                statusElement.textContent = 'Ход соперника...';
-                statusElement.className = 'status opponent-turn';
+                // Проверяем существование игры
+                gameRef.once('value').then((snapshot) => {
+                    const gameData = snapshot.val();
+                    if (!gameData) {
+                        showMessage('Игра не найдена', true);
+                        return;
+                    }
+                    
+                    if (gameData.playerBlack) {
+                        showMessage('В игре уже есть два игрока', true);
+                        return;
+                    }
+                    
+                    // Присоединяемся к игре
+                    gameRef.update({
+                        playerBlack: currentUser,
+                        status: 'active'
+                    }).then(() => {
+                        gameInfoOnline.style.display = 'block';
+                        gameCodeElement.textContent = gameId;
+                        
+                        statusElement.textContent = 'Ход соперника...';
+                        statusElement.className = 'status opponent-turn';
+                        startOpponentTimer();
+                        
+                        showMessage(`Присоединение к игре ${gameId}...`);
+                        
+                        opponentId = gameData.playerWhite;
+                        
+                        // Слушаем ходы
+                        movesRef.on('child_added', (snapshot) => {
+                            const move = snapshot.val();
+                            if (move.player !== currentUser) {
+                                handleOpponentMove(move);
+                            }
+                        });
+                        
+                    }).catch((error) => {
+                        console.error('Ошибка присоединения:', error);
+                        showMessage('Ошибка присоединения: ' + error.message, true);
+                    });
+                    
+                }).catch((error) => {
+                    console.error('Ошибка проверки игры:', error);
+                    showMessage('Ошибка проверки игры: ' + error.message, true);
+                });
+            }
+
+            function handleOpponentMove(move) {
+                // Обработка хода соперника
+                const { fromRow, fromCol, toRow, toCol, promotionPiece } = move;
                 
-                showMessage(`Присоединение к игре ${gameId}...`);
+                // Упрощенная логика - просто перемещаем фигуру
+                const piece = board[fromRow][fromCol];
+                if (piece) {
+                    board[toRow][toCol] = piece;
+                    board[fromRow][fromCol] = null;
+                    renderBoard();
+                    
+                    currentPlayer = playerColor;
+                    statusElement.textContent = 'Ваш ход (' + (playerColor === 'white' ? 'белые' : 'черные') + ')';
+                    statusElement.className = 'status player-turn';
+                    startPlayerTimer();
+                }
+            }
+
+            function makeMove(fromRow, fromCol, toRow, toCol, promotionPiece = 'queen') {
+                if (!currentGameId || currentPlayer !== playerColor) return;
+                
+                // Сохраняем ход в Firebase
+                movesRef.push({
+                    fromRow,
+                    fromCol,
+                    toRow,
+                    toCol,
+                    promotionPiece,
+                    player: currentUser,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                });
+                
+                // Локальное обновление доски
+                const piece = board[fromRow][fromCol];
+                if (piece) {
+                    board[toRow][toCol] = piece;
+                    board[fromRow][fromCol] = null;
+                    renderBoard();
+                    
+                    currentPlayer = playerColor === 'white' ? 'black' : 'white';
+                    statusElement.textContent = 'Ход соперника...';
+                    statusElement.className = 'status opponent-turn';
+                    startOpponentTimer();
+                    
+                    // Обновляем текущего игрока в игре
+                    gameRef.update({
+                        currentPlayer: currentPlayer
+                    });
+                }
             }
 
             function generateGameId() {
                 return Math.random().toString(36).substring(2, 8).toUpperCase();
+            }
+
+            function startPlayerTimer() {
+                clearTimers();
+                playerTimer = setInterval(() => {
+                    playerTime++;
+                    updateTimers();
+                }, 1000);
+            }
+
+            function startOpponentTimer() {
+                clearTimers();
+                opponentTimer = setInterval(() => {
+                    opponentTime++;
+                    updateTimers();
+                }, 1000);
             }
 
             // ===== НАСТРОЙКИ =====
@@ -2213,6 +2410,8 @@
                         option.classList.add('active');
                     }
                 });
+                
+                renderBoard();
             }
 
             function loadBoardTheme() {
@@ -2240,6 +2439,17 @@
                 });
                 
                 renderBoard();
+                updatePromotionModal();
+            }
+
+            function updatePromotionModal() {
+                const promotionPieces = document.querySelectorAll('.promotion-piece-icon');
+                if (promotionPieces.length >= 4) {
+                    promotionPieces[0].style.backgroundImage = `url('${pieceImages.white.queen}')`;
+                    promotionPieces[1].style.backgroundImage = `url('${pieceImages.white.rook}')`;
+                    promotionPieces[2].style.backgroundImage = `url('${pieceImages.white.bishop}')`;
+                    promotionPieces[3].style.backgroundImage = `url('${pieceImages.white.knight}')`;
+                }
             }
 
             function loadPiecesTheme() {
