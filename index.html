@@ -199,11 +199,6 @@
             overflow: hidden;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
             min-width: min(320px, 80vw);
-            transition: transform 0.3s ease;
-        }
-        
-        .board.flipped {
-            transform: rotate(180deg);
         }
         
         .square {
@@ -214,10 +209,6 @@
             transition: background-color 0.2s;
             position: relative;
             user-select: none;
-        }
-        
-        .board.flipped .square {
-            transform: rotate(180deg);
         }
         
         .piece {
@@ -318,7 +309,7 @@
         
         .game-controls {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 10px;
             margin-top: 15px;
         }
@@ -1185,7 +1176,7 @@
         /* Адаптивность для планшетов и больших телефонов */
         @media (min-width: 480px) {
             .game-controls {
-                grid-template-columns: repeat(3, 1fr);
+                grid-template-columns: repeat(4, 1fr);
             }
             
             .online-controls {
@@ -1260,7 +1251,7 @@
             }
             
             .game-controls {
-                grid-template-columns: repeat(3, 1fr);
+                grid-template-columns: repeat(4, 1fr);
             }
         }
         
@@ -1804,23 +1795,30 @@
                 } else {
                     boardElement.classList.remove('flipped');
                 }
-                renderBoard();
+                // Не перерисовываем доску заново, просто применяем трансформацию
+                updateBoardRotation();
             }
 
-            function getDisplayRow(row) {
-                return isBoardFlipped ? 7 - row : row;
-            }
-
-            function getDisplayCol(col) {
-                return isBoardFlipped ? 7 - col : col;
-            }
-
-            function getActualRow(displayRow) {
-                return isBoardFlipped ? 7 - displayRow : displayRow;
-            }
-
-            function getActualCol(displayCol) {
-                return isBoardFlipped ? 7 - displayCol : displayCol;
+            function updateBoardRotation() {
+                // Применяем трансформацию ко всем фигурам
+                const pieces = document.querySelectorAll('.piece');
+                pieces.forEach(piece => {
+                    if (isBoardFlipped) {
+                        piece.style.transform = 'rotate(180deg)';
+                    } else {
+                        piece.style.transform = 'rotate(0deg)';
+                    }
+                });
+                
+                // Применяем трансформацию к координатам
+                const coordinates = document.querySelectorAll('.coordinates');
+                coordinates.forEach(coord => {
+                    if (isBoardFlipped) {
+                        coord.style.transform = 'rotate(180deg)';
+                    } else {
+                        coord.style.transform = 'rotate(0deg)';
+                    }
+                });
             }
 
             // ===== ФУНКЦИИ АВТОРИЗАЦИИ =====
@@ -2045,6 +2043,7 @@
                 // Сбрасываем переворот доски
                 isBoardFlipped = false;
                 boardElement.classList.remove('flipped');
+                updateBoardRotation();
             }
 
             function createEmptyBoard() {
@@ -2094,37 +2093,32 @@
                 boardElement.innerHTML = '';
                 boardElement.className = 'board';
                 boardElement.classList.add(`theme-${boardTheme}`);
-                if (isBoardFlipped) {
-                    boardElement.classList.add('flipped');
-                }
                 
-                for (let displayRow = 0; displayRow < 8; displayRow++) {
-                    for (let displayCol = 0; displayCol < 8; displayCol++) {
-                        const actualRow = getActualRow(displayRow);
-                        const actualCol = getActualCol(displayCol);
-                        
+                // Рендерим доску в обычном порядке (белые внизу)
+                for (let row = 0; row < 8; row++) {
+                    for (let col = 0; col < 8; col++) {
                         const square = document.createElement('div');
                         square.classList.add('square');
-                        square.classList.add((actualRow + actualCol) % 2 === 0 ? 'white' : 'black');
-                        square.dataset.row = actualRow;
-                        square.dataset.col = actualCol;
+                        square.classList.add((row + col) % 2 === 0 ? 'white' : 'black');
+                        square.dataset.row = row;
+                        square.dataset.col = col;
                         
                         // Добавляем координаты
-                        if (actualCol === 0) {
+                        if (col === 0) {
                             const rank = document.createElement('span');
                             rank.classList.add('coordinates', 'coord-rank');
-                            rank.textContent = 8 - actualRow;
+                            rank.textContent = 8 - row;
                             square.appendChild(rank);
                         }
                         
-                        if (actualRow === 7) {
+                        if (row === 7) {
                             const file = document.createElement('span');
                             file.classList.add('coordinates', 'coord-file');
-                            file.textContent = String.fromCharCode(97 + actualCol);
+                            file.textContent = String.fromCharCode(97 + col);
                             square.appendChild(file);
                         }
                         
-                        const piece = board[actualRow][actualCol];
+                        const piece = board[row][col];
                         if (piece) {
                             const pieceElement = document.createElement('div');
                             pieceElement.classList.add('piece');
@@ -2132,10 +2126,13 @@
                             square.appendChild(pieceElement);
                         }
                         
-                        square.addEventListener('click', () => handleSquareClick(actualRow, actualCol));
+                        square.addEventListener('click', () => handleSquareClick(row, col));
                         boardElement.appendChild(square);
                     }
                 }
+                
+                // Применяем текущее состояние переворота
+                updateBoardRotation();
                 
                 // Показываем возможные ходы если есть выбранная фигура
                 highlightValidMoves();
@@ -2157,8 +2154,6 @@
                         
                         // Подсвечиваем возможные ходы
                         moves.forEach(move => {
-                            const displayRow = getDisplayRow(move.row);
-                            const displayCol = getDisplayCol(move.col);
                             const square = document.querySelector(`.square[data-row="${move.row}"][data-col="${move.col}"]`);
                             if (square) {
                                 square.classList.add('valid-move');
@@ -2302,7 +2297,7 @@
                 }
             }
 
-            function handleSquareClick(actualRow, actualCol) {
+            function handleSquareClick(row, col) {
                 if (gameOver || !currentUser) {
                     return;
                 }
@@ -2311,7 +2306,7 @@
                     return;
                 }
                 
-                const piece = board[actualRow][actualCol];
+                const piece = board[row][col];
                 
                 // Проверяем принадлежность фигуры текущему игроку
                 let pieceBelongsToPlayer = false;
@@ -2321,11 +2316,11 @@
                 
                 if (piece && pieceBelongsToPlayer) {
                     // Выбираем фигуру
-                    selectedPiece = { row: actualRow, col: actualCol };
+                    selectedPiece = { row, col };
                     highlightValidMoves();
                 } else if (selectedPiece) {
                     // Делаем ход
-                    makeMove(selectedPiece.row, selectedPiece.col, actualRow, actualCol);
+                    makeMove(selectedPiece.row, selectedPiece.col, row, col);
                     selectedPiece = null;
                     highlightValidMoves();
                 }
@@ -2426,11 +2421,6 @@
                     gameCodeElement.textContent = gameId;
                     updateGameStatus();
                     
-                    // Автоматически переворачиваем доску для черных
-                    if (playerColor === 'black') {
-                        flipBoard();
-                    }
-                    
                     // Слушаем изменения в игре
                     gameRef.on('value', (snapshot) => {
                         const gameData = snapshot.val();
@@ -2492,11 +2482,6 @@
                         updateGameStatus();
                         startOpponentTimer();
                         opponentId = gameData.playerWhite;
-                        
-                        // Автоматически переворачиваем доску для черных
-                        if (playerColor === 'black') {
-                            flipBoard();
-                        }
                         
                         // Слушаем ходы
                         movesRef.on('child_added', (snapshot) => {
