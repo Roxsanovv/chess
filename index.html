@@ -217,11 +217,6 @@
             background-size: contain;
             background-repeat: no-repeat;
             background-position: center;
-            transition: transform 0.3s ease;
-        }
-        
-        .board.flipped .piece {
-            transform: rotate(180deg);
         }
         
         /* Темы доски */
@@ -301,10 +296,6 @@
         .coord-rank {
             top: 1px;
             left: 3px;
-        }
-        
-        .board.flipped .coordinates {
-            transform: rotate(180deg);
         }
         
         .game-controls {
@@ -1542,17 +1533,17 @@
                 <div class="pieces-theme-selector">
                     <div class="pieces-theme-option active" data-pieces-theme="classic">
                         <div class="pieces-preview">
-                            <div class="piece-preview-icon" style="background-image: url('img/king.png')"></div>
-                            <div class="piece-preview-icon" style="background-image: url('img/blackpawn.png')"></div>
-                            <div class="piece-preview-icon" style="background-image: url('img/knight.png')"></div>
+                            <div class="piece-preview-icon" style="background-image: url('https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wk.png')"></div>
+                            <div class="piece-preview-icon" style="background-image: url('https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wp.png')"></div>
+                            <div class="piece-preview-icon" style="background-image: url('https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wq.png')"></div>
                         </div>
                         <div>Классические</div>
                     </div>
                     <div class="pieces-theme-option" data-pieces-theme="modern">
                         <div class="pieces-preview">
-                            <div class="piece-preview-icon" style="background-image: url('img/wm5.svg')"></div>
-                            <div class="piece-preview-icon" style="background-image: url('img/bm6.svg')"></div>
-                            <div class="piece-preview-icon" style="background-image: url('img/wm4.svg')"></div>
+                            <div class="piece-preview-icon" style="background-image: url('https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bk.png')"></div>
+                            <div class="piece-preview-icon" style="background-image: url('https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bp.png')"></div>
+                            <div class="piece-preview-icon" style="background-image: url('https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bq.png')"></div>
                         </div>
                         <div>Современные</div>
                     </div>
@@ -1596,16 +1587,16 @@
     <div class="promotion-modal" id="promotion-modal">
         <div class="promotion-choices">
             <div class="promotion-piece" data-piece="queen">
-                <div class="promotion-piece-icon" style="background-image: url('img/queen.png')"></div>
+                <div class="promotion-piece-icon" style="background-image: url('https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wq.png')"></div>
             </div>
             <div class="promotion-piece" data-piece="rook">
-                <div class="promotion-piece-icon" style="background-image: url('img/rook.png')"></div>
+                <div class="promotion-piece-icon" style="background-image: url('https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wr.png')"></div>
             </div>
             <div class="promotion-piece" data-piece="bishop">
-                <div class="promotion-piece-icon" style="background-image: url('img/bishop.png')"></div>
+                <div class="promotion-piece-icon" style="background-image: url('https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wb.png')"></div>
             </div>
             <div class="promotion-piece" data-piece="knight">
-                <div class="promotion-piece-icon" style="background-image: url('img/knight.png')"></div>
+                <div class="promotion-piece-icon" style="background-image: url('https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wn.png')"></div>
             </div>
         </div>
     </div>
@@ -1746,75 +1737,43 @@
             const piecesThemes = {
                 classic: {
                     white: {
-                        king: 'img/king.png',
-                        queen: 'img/queen.png',
-                        rook: 'img/rook.png',
-                        bishop: 'img/bishop.png',
-                        knight: 'img/knight.png',
-                        pawn: 'img/pawn.png'
+                        king: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wk.png',
+                        queen: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wq.png',
+                        rook: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wr.png',
+                        bishop: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wb.png',
+                        knight: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wn.png',
+                        pawn: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wp.png'
                     },
                     black: {
-                        king: 'img/blackking.png',
-                        queen: 'img/blackqueen.png',
-                        rook: 'img/blackrook.png',
-                        bishop: 'img/blackbishop.png',
-                        knight: 'img/blackknight.png',
-                        pawn: 'img/blackpawn.png'
+                        king: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bk.png',
+                        queen: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bq.png',
+                        rook: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/br.png',
+                        bishop: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bb.png',
+                        knight: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bn.png',
+                        pawn: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bp.png'
                     }
                 },
                 modern: {
                     white: {
-                        king: 'img/wm5.svg',
-                        queen: 'img/wm2.svg',
-                        rook: 'img/wm1.svg',
-                        bishop: 'img/wm6.svg',
-                        knight: 'img/wm4.svg',
-                        pawn: 'img/wm3.svg'
+                        king: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wk.png',
+                        queen: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wq.png',
+                        rook: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wr.png',
+                        bishop: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wb.png',
+                        knight: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wn.png',
+                        pawn: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wp.png'
                     },
                     black: {
-                        king: 'img/bm5.svg',
-                        queen: 'img/bm2.svg',
-                        rook: 'img/bm1.svg',
-                        bishop: 'img/bm6.svg',
-                        knight: 'img/bm4.svg',
-                        pawn: 'img/bm3.svg'
+                        king: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bk.png',
+                        queen: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bq.png',
+                        rook: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/br.png',
+                        bishop: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bb.png',
+                        knight: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bn.png',
+                        pawn: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bp.png'
                     }
                 }
             };
             let currentPiecesTheme = 'classic';
             let pieceImages = piecesThemes[currentPiecesTheme];
-
-            // ===== ФУНКЦИИ ДЛЯ ПЕРЕВОРОТА ДОСКИ =====
-            function flipBoardForBlack() {
-                if (playerColor === 'black') {
-                    boardElement.classList.add('flipped');
-                } else {
-                    boardElement.classList.remove('flipped');
-                }
-                updateBoardRotation();
-            }
-
-            function updateBoardRotation() {
-                // Применяем трансформацию ко всем фигурам
-                const pieces = document.querySelectorAll('.piece');
-                pieces.forEach(piece => {
-                    if (playerColor === 'black') {
-                        piece.style.transform = 'rotate(180deg)';
-                    } else {
-                        piece.style.transform = 'rotate(0deg)';
-                    }
-                });
-                
-                // Применяем трансформацию к координатам
-                const coordinates = document.querySelectorAll('.coordinates');
-                coordinates.forEach(coord => {
-                    if (playerColor === 'black') {
-                        coord.style.transform = 'rotate(180deg)';
-                    } else {
-                        coord.style.transform = 'rotate(0deg)';
-                    }
-                });
-            }
 
             // ===== ФУНКЦИИ ИГРЫ =====
             
@@ -1857,10 +1816,6 @@
                 playerColor = null;
                 opponentId = null;
                 gameInfoOnline.style.display = 'none';
-                
-                // Сбрасываем переворот доски
-                boardElement.classList.remove('flipped');
-                updateBoardRotation();
             }
 
             function createEmptyBoard() {
@@ -1911,17 +1866,61 @@
                 boardElement.className = 'board';
                 boardElement.classList.add(`theme-${boardTheme}`);
                 
-                // Всегда рендерим доску в обычном порядке (белые внизу)
-                for (let row = 0; row < 8; row++) {
-                    for (let col = 0; col < 8; col++) {
-                        const square = document.createElement('div');
-                        square.classList.add('square');
-                        // Цвет клетки всегда определяется одинаково
-                        square.classList.add((row + col) % 2 === 0 ? 'white' : 'black');
-                        square.dataset.row = row;
-                        square.dataset.col = col;
+                // Определяем порядок рендеринга в зависимости от цвета игрока
+                let renderOrder = [];
+                if (playerColor === 'black') {
+                    // Для черных рендерим доску с черными фигурами внизу
+                    for (let row = 7; row >= 0; row--) {
+                        for (let col = 7; col >= 0; col--) {
+                            renderOrder.push({row, col});
+                        }
+                    }
+                } else {
+                    // Для белых рендерим доску с белыми фигурами внизу (обычный порядок)
+                    for (let row = 0; row < 8; row++) {
+                        for (let col = 0; col < 8; col++) {
+                            renderOrder.push({row, col});
+                        }
+                    }
+                }
+                
+                // Рендерим доску в выбранном порядке
+                renderOrder.forEach(({row, col}) => {
+                    const square = document.createElement('div');
+                    square.classList.add('square');
+                    
+                    // Определяем цвет клетки с учетом ориентации
+                    let squareColor;
+                    if (playerColor === 'black') {
+                        // Для черных инвертируем цвета клеток
+                        squareColor = (row + col) % 2 === 0 ? 'black' : 'white';
+                    } else {
+                        // Для белых обычные цвета
+                        squareColor = (row + col) % 2 === 0 ? 'white' : 'black';
+                    }
+                    square.classList.add(squareColor);
+                    
+                    square.dataset.row = row;
+                    square.dataset.col = col;
+                    
+                    // Добавляем координаты с учетом ориентации
+                    if (playerColor === 'black') {
+                        // Для черных инвертируем координаты
+                        if (col === 7) {
+                            const rank = document.createElement('span');
+                            rank.classList.add('coordinates', 'coord-rank');
+                            rank.textContent = row + 1;
+                            square.appendChild(rank);
+                        }
                         
-                        // Добавляем координаты (всегда одинаковые)
+                        if (row === 0) {
+                            const file = document.createElement('span');
+                            file.classList.add('coordinates', 'coord-file');
+                            file.textContent = String.fromCharCode(104 - col); // a=97, h=104
+                            square.appendChild(file);
+                        }
+                    } else {
+                        // Для белых обычные координаты
                         if (col === 0) {
                             const rank = document.createElement('span');
                             rank.classList.add('coordinates', 'coord-rank');
@@ -1935,22 +1934,19 @@
                             file.textContent = String.fromCharCode(97 + col);
                             square.appendChild(file);
                         }
-                        
-                        const piece = board[row][col];
-                        if (piece) {
-                            const pieceElement = document.createElement('div');
-                            pieceElement.classList.add('piece');
-                            pieceElement.style.backgroundImage = `url('${pieceImages[piece.color][piece.type]}')`;
-                            square.appendChild(pieceElement);
-                        }
-                        
-                        square.addEventListener('click', () => handleSquareClick(row, col));
-                        boardElement.appendChild(square);
                     }
-                }
-                
-                // Применяем переворот если игрок за черных
-                flipBoardForBlack();
+                    
+                    const piece = board[row][col];
+                    if (piece) {
+                        const pieceElement = document.createElement('div');
+                        pieceElement.classList.add('piece');
+                        pieceElement.style.backgroundImage = `url('${pieceImages[piece.color][piece.type]}')`;
+                        square.appendChild(pieceElement);
+                    }
+                    
+                    square.addEventListener('click', () => handleSquareClick(row, col));
+                    boardElement.appendChild(square);
+                });
                 
                 // Показываем возможные ходы если есть выбранная фигура
                 highlightValidMoves();
@@ -2423,9 +2419,6 @@
                 boardTheme = theme;
                 boardElement.className = 'board';
                 boardElement.classList.add(`theme-${theme}`);
-                if (playerColor === 'black') {
-                    boardElement.classList.add('flipped');
-                }
                 localStorage.setItem('chessBoardTheme', theme);
                 
                 themeOptions.forEach(option => {
