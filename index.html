@@ -219,44 +219,44 @@
             background-position: center;
         }
         
-        /* Темы доски */
-        .board.theme-classic .square.white {
+        /* Темы доски - ИСПРАВЛЕННЫЕ */
+        .board.theme-classic .square.light {
             background-color: #bdbdbd;
         }
         
-        .board.theme-classic .square.black {
+        .board.theme-classic .square.dark {
             background-color: #757575;
         }
         
-        .board.theme-blue .square.white {
+        .board.theme-blue .square.light {
             background-color: #ffffff;
         }
         
-        .board.theme-blue .square.black {
+        .board.theme-blue .square.dark {
             background-color: #42a5f5;
         }
         
-        .board.theme-green .square.white {
+        .board.theme-green .square.light {
             background-color: #ffffff;
         }
         
-        .board.theme-green .square.black {
+        .board.theme-green .square.dark {
             background-color: #66bb6a;
         }
         
-        .board.theme-purple .square.white {
+        .board.theme-purple .square.light {
             background-color: #ffffff;
         }
         
-        .board.theme-purple .square.black {
+        .board.theme-purple .square.dark {
             background-color: #ab47bc;
         }
         
-        .board.theme-dark .square.white {
+        .board.theme-dark .square.light {
             background-color: #616161;
         }
         
-        .board.theme-dark .square.black {
+        .board.theme-dark .square.dark {
             background-color: #424242;
         }
         
@@ -993,6 +993,7 @@
             border: 1px solid #2a2f36;
         }
         
+        /* ИСПРАВЛЕННЫЕ ПРЕДПРОСМОТРЫ ТЕМ */
         .theme-classic .theme-preview {
             background: linear-gradient(45deg, #bdbdbd 50%, #757575 50%);
         }
@@ -1861,6 +1862,7 @@
                 kingPositions = { white: { row: 7, col: 4 }, black: { row: 0, col: 4 } };
             }
 
+            // ИСПРАВЛЕННАЯ ФУНКЦИЯ RENDERBOARD
             function renderBoard() {
                 boardElement.innerHTML = '';
                 boardElement.className = 'board';
@@ -1889,16 +1891,16 @@
                     const square = document.createElement('div');
                     square.classList.add('square');
                     
-                    // Определяем цвет клетки с учетом ориентации
-                    let squareColor;
-                    if (playerColor === 'black') {
-                        // Для черных инвертируем цвета клеток
-                        squareColor = (row + col) % 2 === 0 ? 'black' : 'white';
+                    // Определяем тип клетки (светлая/темная) на основе позиции
+                    // Не зависимо от ориентации доски, паттерн клеток должен сохраняться
+                    const isLightSquare = (row + col) % 2 === 0;
+                    
+                    // Добавляем классы в зависимости от типа клетки и темы
+                    if (isLightSquare) {
+                        square.classList.add('light');
                     } else {
-                        // Для белых обычные цвета
-                        squareColor = (row + col) % 2 === 0 ? 'white' : 'black';
+                        square.classList.add('dark');
                     }
-                    square.classList.add(squareColor);
                     
                     square.dataset.row = row;
                     square.dataset.col = col;
