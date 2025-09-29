@@ -11,7 +11,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Все стили остаются без изменений */
+        /* Все предыдущие стили остаются без изменений */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -152,6 +152,18 @@
         }
         
         .status.waiting {
+            background: #ff9800;
+        }
+        
+        .status.check {
+            background: #ff5722;
+        }
+        
+        .status.checkmate {
+            background: #d32f2f;
+        }
+        
+        .status.stalemate {
             background: #ff9800;
         }
         
@@ -1776,7 +1788,96 @@
             let currentPiecesTheme = 'classic';
             let pieceImages = piecesThemes[currentPiecesTheme];
 
-            // ===== ФУНКЦИИ ИГРЫ =====
+            // ===== ФУНКЦИИ ДЛЯ ШАХА И МАТА =====
+
+            // Проверка находится ли король под шахом
+            function isKingInCheck(color) {
+                const kingPos = findKing(color);
+                if (!kingPos) return false;
+                
+                // Проверяем все фигуры противника
+                const opponentColor = color === 'white' ? 'black' : 'white';
+                
+                for (let row = 0; row < 8; row++) {
+                    for (let col = 0; col < 8; col++) {
+                        const piece = board[row][col];
+                        if (piece && piece.color === opponentColor) {
+                            const moves = getValidMoves(row, col, piece, true); // true - игнорируем проверку шаха
+                            if (moves.some(move => move.row === kingPos.row && move.col === kingPos.col)) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+                return false;
+            }
+
+            // Поиск короля на доске
+            function findKing(color) {
+                for (let row = 0; row < 8; row++) {
+                    for (let col = 0; col < 8; col++) {
+                        const piece = board[row][col];
+                        if (piece && piece.type === 'king' && piece.color === color) {
+                            return { row, col };
+                        }
+                    }
+                }
+                return null;
+            }
+
+            // Проверка на мат
+            function isCheckmate(color) {
+                if (!isKingInCheck(color)) return false;
+                
+                // Проверяем есть ли хоть один ход, который убирает шах
+                for (let row = 0; row < 8; row++) {
+                    for (let col = 0; col < 8; col++) {
+                        const piece = board[row][col];
+                        if (piece && piece.color === color) {
+                            const moves = getValidMoves(row, col, piece);
+                            for (const move of moves) {
+                                // Пробуем сделать ход
+                                const originalPiece = board[move.row][move.col];
+                                board[move.row][move.col] = piece;
+                                board[row][col] = null;
+                                
+                                const kingPos = findKing(color);
+                                const stillInCheck = isKingInCheck(color);
+                                
+                                // Возвращаем доску в исходное состояние
+                                board[row][col] = piece;
+                                board[move.row][move.col] = originalPiece;
+                                
+                                if (!stillInCheck) {
+                                    return false; // Нашли ход, который убирает шах
+                                }
+                            }
+                        }
+                    }
+                }
+                return true; // Нет ходов, которые убирают шах - мат
+            }
+
+            // Проверка на пат
+            function isStalemate(color) {
+                if (isKingInCheck(color)) return false;
+                
+                // Проверяем есть ли хоть один допустимый ход
+                for (let row = 0; row < 8; row++) {
+                    for (let col = 0; col < 8; col++) {
+                        const piece = board[row][col];
+                        if (piece && piece.color === color) {
+                            const moves = getValidMoves(row, col, piece);
+                            if (moves.length > 0) {
+                                return false; // Есть допустимые ходы
+                            }
+                        }
+                    }
+                }
+                return true; // Нет допустимых ходов - пат
+            }
+
+            // ===== ОСНОВНЫЕ ФУНКЦИИ ИГРЫ =====
             
             // Инициализация игры
             function initGame() {
@@ -1902,6 +2003,12 @@
                         square.classList.add('dark');
                     }
                     
+                    // Подсвечиваем короля если он под шахом
+                    const piece = board[row][col];
+                    if (piece && piece.type === 'king' && isKingInCheck(piece.color)) {
+                        square.classList.add('check');
+                    }
+                    
                     square.dataset.row = row;
                     square.dataset.col = col;
                     
@@ -1938,7 +2045,6 @@
                         }
                     }
                     
-                    const piece = board[row][col];
                     if (piece) {
                         const pieceElement = document.createElement('div');
                         pieceElement.classList.add('piece');
@@ -1979,43 +2085,44 @@
                 }
             }
 
-            function getValidMoves(row, col, piece) {
+            function getValidMoves(row, col, piece, ignoreCheck = false) {
                 const moves = [];
+                const originalMoves = [];
                 
-                // Базовая логика ходов (упрощенная)
+                // Базовая логика ходов
                 switch (piece.type) {
                     case 'pawn':
                         if (piece.color === 'white') {
                             // Белые пешки двигаются вверх (уменьшение row)
                             if (row > 0 && !board[row-1][col]) {
-                                moves.push({ row: row-1, col });
+                                originalMoves.push({ row: row-1, col });
                                 // Первый ход пешки - на 2 клетки
                                 if (row === 6 && !board[row-2][col]) {
-                                    moves.push({ row: row-2, col });
+                                    originalMoves.push({ row: row-2, col });
                                 }
                             }
                             // Взятие по диагонали
                             if (row > 0 && col > 0 && board[row-1][col-1] && board[row-1][col-1].color === 'black') {
-                                moves.push({ row: row-1, col: col-1 });
+                                originalMoves.push({ row: row-1, col: col-1 });
                             }
                             if (row > 0 && col < 7 && board[row-1][col+1] && board[row-1][col+1].color === 'black') {
-                                moves.push({ row: row-1, col: col+1 });
+                                originalMoves.push({ row: row-1, col: col+1 });
                             }
                         } else {
                             // Черные пешки двигаются вниз (увеличение row)
                             if (row < 7 && !board[row+1][col]) {
-                                moves.push({ row: row+1, col });
+                                originalMoves.push({ row: row+1, col });
                                 // Первый ход пешки - на 2 клетки
                                 if (row === 1 && !board[row+2][col]) {
-                                    moves.push({ row: row+2, col });
+                                    originalMoves.push({ row: row+2, col });
                                 }
                             }
                             // Взятие по диагонали
                             if (row < 7 && col > 0 && board[row+1][col-1] && board[row+1][col-1].color === 'white') {
-                                moves.push({ row: row+1, col: col-1 });
+                                originalMoves.push({ row: row+1, col: col-1 });
                             }
                             if (row < 7 && col < 7 && board[row+1][col+1] && board[row+1][col+1].color === 'white') {
-                                moves.push({ row: row+1, col: col+1 });
+                                originalMoves.push({ row: row+1, col: col+1 });
                             }
                         }
                         break;
@@ -2035,7 +2142,7 @@
                             
                             if (newRow >= 0 && newRow < 8 && newCol >= 0 && newCol < 8) {
                                 if (!board[newRow][newCol] || board[newRow][newCol].color !== piece.color) {
-                                    moves.push({ row: newRow, col: newCol });
+                                    originalMoves.push({ row: newRow, col: newCol });
                                 }
                             }
                         });
@@ -2043,30 +2150,30 @@
                         
                     case 'bishop':
                         // Ходы слона по диагоналям
-                        addLinearMoves(moves, row, col, piece, -1, -1); // Влево-вверх
-                        addLinearMoves(moves, row, col, piece, -1, 1);  // Вправо-вверх
-                        addLinearMoves(moves, row, col, piece, 1, -1);  // Влево-вниз
-                        addLinearMoves(moves, row, col, piece, 1, 1);   // Вправо-вниз
+                        addLinearMoves(originalMoves, row, col, piece, -1, -1); // Влево-вверх
+                        addLinearMoves(originalMoves, row, col, piece, -1, 1);  // Вправо-вверх
+                        addLinearMoves(originalMoves, row, col, piece, 1, -1);  // Влево-вниз
+                        addLinearMoves(originalMoves, row, col, piece, 1, 1);   // Вправо-вниз
                         break;
                         
                     case 'rook':
                         // Ходы ладьи по прямым
-                        addLinearMoves(moves, row, col, piece, -1, 0);  // Вверх
-                        addLinearMoves(moves, row, col, piece, 1, 0);   // Вниз
-                        addLinearMoves(moves, row, col, piece, 0, -1);  // Влево
-                        addLinearMoves(moves, row, col, piece, 0, 1);   // Вправо
+                        addLinearMoves(originalMoves, row, col, piece, -1, 0);  // Вверх
+                        addLinearMoves(originalMoves, row, col, piece, 1, 0);   // Вниз
+                        addLinearMoves(originalMoves, row, col, piece, 0, -1);  // Влево
+                        addLinearMoves(originalMoves, row, col, piece, 0, 1);   // Вправо
                         break;
                         
                     case 'queen':
                         // Ходы королевы (ладья + слон)
-                        addLinearMoves(moves, row, col, piece, -1, 0);  // Вверх
-                        addLinearMoves(moves, row, col, piece, 1, 0);   // Вниз
-                        addLinearMoves(moves, row, col, piece, 0, -1);  // Влево
-                        addLinearMoves(moves, row, col, piece, 0, 1);   // Вправо
-                        addLinearMoves(moves, row, col, piece, -1, -1); // Влево-вверх
-                        addLinearMoves(moves, row, col, piece, -1, 1);  // Вправо-вверх
-                        addLinearMoves(moves, row, col, piece, 1, -1);  // Влево-вниз
-                        addLinearMoves(moves, row, col, piece, 1, 1);   // Вправо-вниз
+                        addLinearMoves(originalMoves, row, col, piece, -1, 0);  // Вверх
+                        addLinearMoves(originalMoves, row, col, piece, 1, 0);   // Вниз
+                        addLinearMoves(originalMoves, row, col, piece, 0, -1);  // Влево
+                        addLinearMoves(originalMoves, row, col, piece, 0, 1);   // Вправо
+                        addLinearMoves(originalMoves, row, col, piece, -1, -1); // Влево-вверх
+                        addLinearMoves(originalMoves, row, col, piece, -1, 1);  // Вправо-вверх
+                        addLinearMoves(originalMoves, row, col, piece, 1, -1);  // Влево-вниз
+                        addLinearMoves(originalMoves, row, col, piece, 1, 1);   // Вправо-вниз
                         break;
                         
                     case 'king':
@@ -2080,12 +2187,39 @@
                                 
                                 if (newRow >= 0 && newRow < 8 && newCol >= 0 && newCol < 8) {
                                     if (!board[newRow][newCol] || board[newRow][newCol].color !== piece.color) {
-                                        moves.push({ row: newRow, col: newCol });
+                                        originalMoves.push({ row: newRow, col: newCol });
                                     }
                                 }
                             }
                         }
                         break;
+                }
+                
+                // Если игнорируем проверку шаха, возвращаем все ходы
+                if (ignoreCheck) {
+                    return originalMoves;
+                }
+                
+                // Фильтруем ходы, которые оставляют короля под шахом
+                for (const move of originalMoves) {
+                    // Сохраняем исходное состояние
+                    const originalTargetPiece = board[move.row][move.col];
+                    
+                    // Делаем временный ход
+                    board[move.row][move.col] = piece;
+                    board[row][col] = null;
+                    
+                    // Проверяем не остался ли король под шахом
+                    const stillInCheck = isKingInCheck(piece.color);
+                    
+                    // Возвращаем доску в исходное состояние
+                    board[row][col] = piece;
+                    board[move.row][move.col] = originalTargetPiece;
+                    
+                    // Если король не под шахом после хода, добавляем ход в допустимые
+                    if (!stillInCheck) {
+                        moves.push(move);
+                    }
                 }
                 
                 return moves;
@@ -2142,6 +2276,90 @@
                 }
             }
 
+            function makeMove(fromRow, fromCol, toRow, toCol, promotionPiece = 'queen') {
+                if (!currentGameId || currentPlayer !== playerColor) return;
+                
+                // Проверяем валидность хода
+                const piece = board[fromRow][fromCol];
+                if (!piece) return;
+                
+                const validMoves = getValidMoves(fromRow, fromCol, piece);
+                const isValidMove = validMoves.some(move => move.row === toRow && move.col === toCol);
+                
+                if (!isValidMove) return;
+                
+                // Запоминаем съеденную фигуру
+                const capturedPiece = board[toRow][toCol];
+                if (capturedPiece) {
+                    capturedPieces[piece.color].push(capturedPiece);
+                }
+                
+                // Сохраняем ход в Firebase
+                if (movesRef) {
+                    movesRef.push({
+                        fromRow,
+                        fromCol,
+                        toRow,
+                        toCol,
+                        promotionPiece,
+                        player: currentUser.uid,
+                        timestamp: firebase.database.ServerValue.TIMESTAMP
+                    });
+                }
+                
+                // Локальное обновление доски
+                board[toRow][toCol] = piece;
+                board[fromRow][fromCol] = null;
+                
+                // Обновляем позицию короля если нужно
+                if (piece.type === 'king') {
+                    kingPositions[piece.color] = { row: toRow, col: toCol };
+                }
+                
+                // Проверяем шах и мат
+                const opponentColor = piece.color === 'white' ? 'black' : 'white';
+                
+                if (isCheckmate(opponentColor)) {
+                    gameOver = true;
+                    statusElement.textContent = `Мат! ${piece.color === 'white' ? 'Белые' : 'Черные'} выиграли!`;
+                    statusElement.className = 'status checkmate';
+                    
+                    // Обновляем статистику
+                    if (currentUser) {
+                        playerData.stats.wins++;
+                        playerData.stats.totalGames++;
+                        updatePlayerStats();
+                    }
+                } else if (isStalemate(opponentColor)) {
+                    gameOver = true;
+                    statusElement.textContent = 'Пат! Ничья!';
+                    statusElement.className = 'status stalemate';
+                    
+                    // Обновляем статистику
+                    if (currentUser) {
+                        playerData.stats.draws++;
+                        playerData.stats.totalGames++;
+                        updatePlayerStats();
+                    }
+                } else if (isKingInCheck(opponentColor)) {
+                    statusElement.textContent = `Шах! ${opponentColor === 'white' ? 'Белые' : 'Черные'} под шахом`;
+                    statusElement.className = 'status check';
+                } else {
+                    currentPlayer = opponentColor;
+                    updateGameStatus();
+                }
+                
+                renderBoard();
+                updateCapturedPieces();
+                updateMoveHistory();
+                
+                if (gameRef && !gameOver) {
+                    gameRef.update({
+                        currentPlayer: currentPlayer
+                    });
+                }
+            }
+
             function clearTimers() {
                 clearInterval(playerTimer);
                 clearInterval(opponentTimer);
@@ -2164,12 +2382,31 @@
                 capturedWhiteElement.innerHTML = 'Белые: ';
                 capturedBlackElement.innerHTML = 'Черные: ';
                 
-                // Заглушка для демонстрации
-                capturedWhiteElement.innerHTML += 'Нет съеденных фигур';
-                capturedBlackElement.innerHTML += 'Нет съеденных фигур';
+                if (capturedPieces.white.length === 0) {
+                    capturedWhiteElement.innerHTML += 'Нет съеденных фигур';
+                } else {
+                    capturedPieces.white.forEach(piece => {
+                        const pieceElement = document.createElement('div');
+                        pieceElement.classList.add('captured-piece');
+                        pieceElement.style.backgroundImage = `url('${pieceImages[piece.color][piece.type]}')`;
+                        capturedWhiteElement.appendChild(pieceElement);
+                    });
+                }
+                
+                if (capturedPieces.black.length === 0) {
+                    capturedBlackElement.innerHTML += 'Нет съеденных фигур';
+                } else {
+                    capturedPieces.black.forEach(piece => {
+                        const pieceElement = document.createElement('div');
+                        pieceElement.classList.add('captured-piece');
+                        pieceElement.style.backgroundImage = `url('${pieceImages[piece.color][piece.type]}')`;
+                        capturedBlackElement.appendChild(pieceElement);
+                    });
+                }
             }
 
             function updateMoveHistory() {
+                // Простая реализация истории ходов
                 moveListElement.innerHTML = '<div class="move-item">История ходов появится здесь</div>';
             }
 
@@ -2215,6 +2452,7 @@
             
             function createGame() {
                 if (!currentUser) {
+                    alert('Пожалуйста, войдите в систему чтобы создать игру');
                     return;
                 }
                 
@@ -2261,16 +2499,19 @@
                     
                 }).catch((error) => {
                     console.error('Ошибка создания игры:', error);
+                    alert('Ошибка создания игры: ' + error.message);
                 });
             }
 
             function joinGame() {
                 if (!currentUser) {
+                    alert('Пожалуйста, войдите в систему чтобы присоединиться к игре');
                     return;
                 }
                 
                 const gameId = gameCodeInput.value.trim();
                 if (!gameId) {
+                    alert('Введите код игры');
                     return;
                 }
                 
@@ -2284,10 +2525,12 @@
                 gameRef.once('value').then((snapshot) => {
                     const gameData = snapshot.val();
                     if (!gameData) {
+                        alert('Игра не найдена');
                         return;
                     }
                     
                     if (gameData.playerBlack) {
+                        alert('В игре уже есть два игрока');
                         return;
                     }
                     
@@ -2315,10 +2558,12 @@
                         
                     }).catch((error) => {
                         console.error('Ошибка присоединения:', error);
+                        alert('Ошибка присоединения: ' + error.message);
                     });
                     
                 }).catch((error) => {
                     console.error('Ошибка проверки игры:', error);
+                    alert('Ошибка проверки игры: ' + error.message);
                 });
             }
 
@@ -2327,50 +2572,58 @@
                 const piece = board[fromRow][fromCol];
                 
                 if (piece) {
+                    // Запоминаем съеденную фигуру
+                    const capturedPiece = board[toRow][toCol];
+                    if (capturedPiece) {
+                        capturedPieces[piece.color].push(capturedPiece);
+                    }
+                    
                     board[toRow][toCol] = piece;
                     board[fromRow][fromCol] = null;
+                    
+                    // Обновляем позицию короля если нужно
+                    if (piece.type === 'king') {
+                        kingPositions[piece.color] = { row: toRow, col: toCol };
+                    }
+                    
                     renderBoard();
-                    currentPlayer = playerColor;
-                    updateGameStatus();
-                    startPlayerTimer();
+                    updateCapturedPieces();
+                    updateMoveHistory();
+                    
+                    // Проверяем шах и мат
+                    const opponentColor = piece.color === 'white' ? 'black' : 'white';
+                    
+                    if (isCheckmate(opponentColor)) {
+                        gameOver = true;
+                        statusElement.textContent = `Мат! ${piece.color === 'white' ? 'Белые' : 'Черные'} выиграли!`;
+                        statusElement.className = 'status checkmate';
+                        
+                        // Обновляем статистику
+                        if (currentUser) {
+                            playerData.stats.losses++;
+                            playerData.stats.totalGames++;
+                            updatePlayerStats();
+                        }
+                    } else if (isStalemate(opponentColor)) {
+                        gameOver = true;
+                        statusElement.textContent = 'Пат! Ничья!';
+                        statusElement.className = 'status stalemate';
+                        
+                        // Обновляем статистику
+                        if (currentUser) {
+                            playerData.stats.draws++;
+                            playerData.stats.totalGames++;
+                            updatePlayerStats();
+                        }
+                    } else if (isKingInCheck(opponentColor)) {
+                        statusElement.textContent = `Шах! ${opponentColor === 'white' ? 'Белые' : 'Черные'} под шахом`;
+                        statusElement.className = 'status check';
+                    } else {
+                        currentPlayer = playerColor;
+                        updateGameStatus();
+                        startPlayerTimer();
+                    }
                 }
-            }
-
-            function makeMove(fromRow, fromCol, toRow, toCol, promotionPiece = 'queen') {
-                if (!currentGameId || currentPlayer !== playerColor) return;
-                
-                // Проверяем валидность хода
-                const piece = board[fromRow][fromCol];
-                if (!piece) return;
-                
-                const validMoves = getValidMoves(fromRow, fromCol, piece);
-                const isValidMove = validMoves.some(move => move.row === toRow && move.col === toCol);
-                
-                if (!isValidMove) return;
-                
-                // Сохраняем ход в Firebase
-                movesRef.push({
-                    fromRow,
-                    fromCol,
-                    toRow,
-                    toCol,
-                    promotionPiece,
-                    player: currentUser.uid,
-                    timestamp: firebase.database.ServerValue.TIMESTAMP
-                });
-                
-                // Локальное обновление доски
-                board[toRow][toCol] = piece;
-                board[fromRow][fromCol] = null;
-                renderBoard();
-                
-                currentPlayer = playerColor === 'white' ? 'black' : 'white';
-                updateGameStatus();
-                startOpponentTimer();
-                
-                gameRef.update({
-                    currentPlayer: currentPlayer
-                });
             }
 
             function updateGameStatus() {
@@ -2383,6 +2636,10 @@
                 if (!playerColor) {
                     statusElement.textContent = 'Подготовка игры...';
                     statusElement.className = 'status waiting';
+                    return;
+                }
+                
+                if (gameOver) {
                     return;
                 }
                 
