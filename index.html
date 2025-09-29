@@ -1830,32 +1830,7 @@
                 if (!isKingInCheck(color)) return false;
                 
                 // Проверяем есть ли хоть один ход, который убирает шах
-                for (let row = 0; row < 8; row++) {
-                    for (let col = 0; col < 8; col++) {
-                        const piece = board[row][col];
-                        if (piece && piece.color === color) {
-                            const moves = getValidMoves(row, col, piece);
-                            for (const move of moves) {
-                                // Пробуем сделать ход
-                                const originalPiece = board[move.row][move.col];
-                                board[move.row][move.col] = piece;
-                                board[row][col] = null;
-                                
-                                const kingPos = findKing(color);
-                                const stillInCheck = isKingInCheck(color);
-                                
-                                // Возвращаем доску в исходное состояние
-                                board[row][col] = piece;
-                                board[move.row][move.col] = originalPiece;
-                                
-                                if (!stillInCheck) {
-                                    return false; // Нашли ход, который убирает шах
-                                }
-                            }
-                        }
-                    }
-                }
-                return true; // Нет ходов, которые убирают шах - мат
+                return !hasAnyValidMove(color);
             }
 
             // Проверка на пат
@@ -1863,18 +1838,80 @@
                 if (isKingInCheck(color)) return false;
                 
                 // Проверяем есть ли хоть один допустимый ход
+                return !hasAnyValidMove(color);
+            }
+
+            // Проверяет есть ли у игрока хоть один допустимый ход
+            function hasAnyValidMove(color) {
                 for (let row = 0; row < 8; row++) {
                     for (let col = 0; col < 8; col++) {
                         const piece = board[row][col];
                         if (piece && piece.color === color) {
                             const moves = getValidMoves(row, col, piece);
                             if (moves.length > 0) {
-                                return false; // Есть допустимые ходы
+                                return true;
                             }
                         }
                     }
                 }
-                return true; // Нет допустимых ходов - пат
+                return false;
+            }
+
+            // ===== СИСТЕМА РЕЙТИНГА =====
+
+            function updateRating(result) {
+                if (!currentUser) return;
+                
+                const oldRating = playerData.rating;
+                let change = 0;
+                
+                switch (result) {
+                    case 'win':
+                        change = 25;
+                        playerData.stats.wins++;
+                        break;
+                    case 'loss':
+                        change = -15;
+                        playerData.stats.losses++;
+                        break;
+                    case 'draw':
+                        change = 0;
+                        playerData.stats.draws++;
+                        break;
+                }
+                
+                playerData.rating += change;
+                playerData.stats.totalGames++;
+                
+                // Показываем изменение рейтинга
+                showRatingChange(change);
+                
+                // Обновляем UI
+                updateRatingDisplay();
+                updatePlayerStats();
+                updateUI();
+                
+                // Сохраняем в Firebase
+                if (currentUser) {
+                    database.ref('users/' + currentUser.uid).update({
+                        rating: playerData.rating,
+                        stats: playerData.stats
+                    });
+                }
+                
+                // Сохраняем в локальное хранилище
+                localStorage.setItem('chessPlayerData', JSON.stringify(playerData));
+            }
+
+            function showRatingChange(change) {
+                if (change === 0) return;
+                
+                ratingChangeElement.textContent = (change > 0 ? '+' : '') + change;
+                ratingChangeElement.className = 'rating-change show ' + (change > 0 ? 'positive' : 'negative');
+                
+                setTimeout(() => {
+                    ratingChangeElement.classList.remove('show');
+                }, 3000);
             }
 
             // ===== ОСНОВНЫЕ ФУНКЦИИ ИГРЫ =====
@@ -2324,11 +2361,11 @@
                     statusElement.textContent = `Мат! ${piece.color === 'white' ? 'Белые' : 'Черные'} выиграли!`;
                     statusElement.className = 'status checkmate';
                     
-                    // Обновляем статистику
-                    if (currentUser) {
-                        playerData.stats.wins++;
-                        playerData.stats.totalGames++;
-                        updatePlayerStats();
+                    // Обновляем рейтинг
+                    if (piece.color === playerColor) {
+                        updateRating('win');
+                    } else {
+                        updateRating('loss');
                     }
                 } else if (isStalemate(opponentColor)) {
                     gameOver = true;
@@ -2336,14 +2373,12 @@
                     statusElement.className = 'status stalemate';
                     
                     // Обновляем статистику
-                    if (currentUser) {
-                        playerData.stats.draws++;
-                        playerData.stats.totalGames++;
-                        updatePlayerStats();
-                    }
+                    updateRating('draw');
                 } else if (isKingInCheck(opponentColor)) {
                     statusElement.textContent = `Шах! ${opponentColor === 'white' ? 'Белые' : 'Черные'} под шахом`;
                     statusElement.className = 'status check';
+                    currentPlayer = opponentColor;
+                    updateGameStatus();
                 } else {
                     currentPlayer = opponentColor;
                     updateGameStatus();
@@ -2598,11 +2633,11 @@
                         statusElement.textContent = `Мат! ${piece.color === 'white' ? 'Белые' : 'Черные'} выиграли!`;
                         statusElement.className = 'status checkmate';
                         
-                        // Обновляем статистику
-                        if (currentUser) {
-                            playerData.stats.losses++;
-                            playerData.stats.totalGames++;
-                            updatePlayerStats();
+                        // Обновляем рейтинг
+                        if (piece.color === playerColor) {
+                            updateRating('loss');
+                        } else {
+                            updateRating('win');
                         }
                     } else if (isStalemate(opponentColor)) {
                         gameOver = true;
@@ -2610,14 +2645,13 @@
                         statusElement.className = 'status stalemate';
                         
                         // Обновляем статистику
-                        if (currentUser) {
-                            playerData.stats.draws++;
-                            playerData.stats.totalGames++;
-                            updatePlayerStats();
-                        }
+                        updateRating('draw');
                     } else if (isKingInCheck(opponentColor)) {
                         statusElement.textContent = `Шах! ${opponentColor === 'white' ? 'Белые' : 'Черные'} под шахом`;
                         statusElement.className = 'status check';
+                        currentPlayer = playerColor;
+                        updateGameStatus();
+                        startPlayerTimer();
                     } else {
                         currentPlayer = playerColor;
                         updateGameStatus();
