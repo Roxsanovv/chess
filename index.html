@@ -2356,16 +2356,20 @@
                 // Проверяем шах и мат
                 const opponentColor = piece.color === 'white' ? 'black' : 'white';
                 
-                if (isCheckmate(opponentColor)) {
-                    gameOver = true;
-                    statusElement.textContent = `Мат! ${piece.color === 'white' ? 'Белые' : 'Черные'} выиграли!`;
-                    statusElement.className = 'status checkmate';
-                    
-                    // Обновляем рейтинг
-                    if (piece.color === playerColor) {
-                        updateRating('win');
-                    } else {
+                // В функции makeMove замените блок проверки мата на этот:
+                    if (isCheckmate(opponentColor)) {
+                        gameOver = true;
+                        statusElement.textContent = `Мат! ${piece.color === 'white' ? 'Белые' : 'Черные'} выиграли!`;
+                        statusElement.className = 'status checkmate';
+    
+                    // ИСПРАВЛЕННАЯ ЛОГИКА РЕЙТИНГА
+                        if (piece.color === playerColor) {
+                            // Мы поставили мат - мы выиграли
+                            updateRating('win');
+                        } else {
+                            // Мы получили мат - мы проиграли
                         updateRating('loss');
+                        }
                     }
                 } else if (isStalemate(opponentColor)) {
                     gameOver = true;
@@ -2602,63 +2606,65 @@
                 });
             }
 
-            function handleOpponentMove(move) {
-                const { fromRow, fromCol, toRow, toCol, promotionPiece } = move;
-                const piece = board[fromRow][fromCol];
-                
-                if (piece) {
-                    // Запоминаем съеденную фигуру
-                    const capturedPiece = board[toRow][toCol];
-                    if (capturedPiece) {
-                        capturedPieces[piece.color].push(capturedPiece);
-                    }
-                    
-                    board[toRow][toCol] = piece;
-                    board[fromRow][fromCol] = null;
-                    
-                    // Обновляем позицию короля если нужно
-                    if (piece.type === 'king') {
-                        kingPositions[piece.color] = { row: toRow, col: toCol };
-                    }
-                    
-                    renderBoard();
-                    updateCapturedPieces();
-                    updateMoveHistory();
-                    
-                    // Проверяем шах и мат
-                    const opponentColor = piece.color === 'white' ? 'black' : 'white';
-                    
-                    if (isCheckmate(opponentColor)) {
-                        gameOver = true;
-                        statusElement.textContent = `Мат! ${piece.color === 'white' ? 'Белые' : 'Черные'} выиграли!`;
-                        statusElement.className = 'status checkmate';
-                        
-                        // Обновляем рейтинг
-                        if (piece.color === playerColor) {
-                            updateRating('loss');
-                        } else {
-                            updateRating('win');
-                        }
-                    } else if (isStalemate(opponentColor)) {
-                        gameOver = true;
-                        statusElement.textContent = 'Пат! Ничья!';
-                        statusElement.className = 'status stalemate';
-                        
-                        // Обновляем статистику
-                        updateRating('draw');
-                    } else if (isKingInCheck(opponentColor)) {
-                        statusElement.textContent = `Шах! ${opponentColor === 'white' ? 'Белые' : 'Черные'} под шахом`;
-                        statusElement.className = 'status check';
-                        currentPlayer = playerColor;
-                        updateGameStatus();
-                        startPlayerTimer();
+        function handleOpponentMove(move) {
+            const { fromRow, fromCol, toRow, toCol, promotionPiece } = move;
+            const piece = board[fromRow][fromCol];
+    
+            if (piece) {
+                // Запоминаем съеденную фигуру
+                const capturedPiece = board[toRow][toCol];
+                if (capturedPiece) {
+                capturedPieces[piece.color].push(capturedPiece);
+                }
+
+                board[toRow][toCol] = piece;
+                board[fromRow][fromCol] = null;
+
+                // Обновляем позицию короля если нужно
+                if (piece.type === 'king') {
+                    kingPositions[piece.color] = { row: toRow, col: toCol };
+                }
+
+                renderBoard();
+                updateCapturedPieces();
+                updateMoveHistory();
+
+                // Проверяем шах и мат
+                const opponentColor = piece.color === 'white' ? 'black' : 'white';
+
+                if (isCheckmate(opponentColor)) {
+                    gameOver = true;
+                    statusElement.textContent = `Мат! ${piece.color === 'white' ? 'Белые' : 'Черные'} выиграли!`;
+                    statusElement.className = 'status checkmate';
+
+                    // ИСПРАВЛЕННАЯ ЛОГИКА РЕЙТИНГА
+                    if (piece.color === playerColor) {
+                        // Противник поставил нам мат - мы проиграли
+                        updateRating('loss');
                     } else {
-                        currentPlayer = playerColor;
-                        updateGameStatus();
-                        startPlayerTimer();
+                        // Мы поставили мат противнику - мы выиграли
+                        updateRating('win');
                     }
+                } else if (isStalemate(opponentColor)) {
+                    gameOver = true;
+                    statusElement.textContent = 'Пат! Ничья!';
+                    statusElement.className = 'status stalemate';
+
+                    // Обновляем статистику
+                    updateRating('draw');
+                } else if (isKingInCheck(opponentColor)) {
+                    statusElement.textContent = `Шах! ${opponentColor === 'white' ? 'Белые' : 'Черные'} под шахом`;
+                    statusElement.className = 'status check';
+                    currentPlayer = playerColor;
+                    updateGameStatus();
+                    startPlayerTimer();
+                } else {
+                    currentPlayer = playerColor;
+                    updateGameStatus();
+                    startPlayerTimer();
                 }
             }
+        }
 
             function updateGameStatus() {
                 if (!currentGameId) {
